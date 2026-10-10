@@ -1,0 +1,4321 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kool Bar (อาจารย์) — POS</title>
+    <link rel="icon" href="logo/LogoKoolBar.PNG" />
+    <style>
+      :root {
+        --bg: #0d0d0f;
+        --bg2: #151518;
+        --bg3: #1d1d22;
+        --line: #2c2c33;
+        --fg: #f2f2f4;
+        --muted: #9a9aa5;
+        --orange: #ff7a18;
+        --green: #22c55e;
+        --red: #ef4444;
+        --yellow: #f5b301;
+        --radius: 14px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+      }
+      body {
+        font-family: "Noto Sans Thai", "Sarabun", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+        font-size: 15px;
+        line-height: 1.5;
+        overflow-x: hidden;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        margin: 0 0 0.5rem;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 0.65rem 0.8rem;
+        border-radius: 10px;
+        background: var(--bg3);
+        border: 1px solid var(--line);
+        color: var(--fg);
+        font-family: inherit;
+        font-size: 15px;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: 2px solid var(--orange);
+        border-color: transparent;
+      }
+      label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin: 0.6rem 0 0.25rem;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        padding: 0.7rem 1.1rem;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        background: var(--bg3);
+        color: var(--fg);
+        font-family: inherit;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.15s;
+        min-height: 44px;
+      }
+      .btn:hover {
+        filter: brightness(1.15);
+      }
+      .btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .btn-primary {
+        background: var(--orange);
+        color: #111;
+      }
+      .btn-danger {
+        background: var(--red);
+        color: #fff;
+      }
+      .btn-ghost {
+        background: transparent;
+        border-color: var(--line);
+      }
+      .btn-sm {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.85rem;
+        min-height: 34px;
+      }
+      .btn-block {
+        width: 100%;
+      }
+      .row {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .row > * {
+        flex: 1;
+      }
+      .row.tight {
+        gap: 0.35rem;
+      }
+      .grid {
+        display: grid;
+        gap: 0.75rem;
+      }
+      .g2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .g3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .g4 {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      @media (max-width: 900px) {
+        .g3,
+        .g4 {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 560px) {
+        .g2,
+        .g3,
+        .g4 {
+          grid-template-columns: 1fr;
+        }
+      }
+      .card {
+        background: var(--bg2);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 1.1rem;
+        margin-bottom: 1rem;
+      }
+      .msg {
+        margin-top: 0.6rem;
+        font-size: 0.9rem;
+        min-height: 1.2em;
+      }
+      .msg.err {
+        color: var(--red);
+      }
+      .msg.ok {
+        color: var(--green);
+      }
+      .hint {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-top: 0.5rem;
+      }
+
+      .public-wrap {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      .public-header {
+        text-align: center;
+        padding: 2.2rem 1rem 1rem;
+      }
+      .logo-lg {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        border-radius: 50%;
+        background: #fff;
+        padding: 0px;
+        margin: 0 auto;
+        display: block;
+      }
+      .logo-fallback {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: #fff;
+        color: #111;
+        font-weight: 900;
+        font-size: 2.2rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+      }
+      .public-header h1 {
+        font-size: 1.7rem;
+        margin-top: 1rem;
+      }
+      .public-header h1 span {
+        color: var(--orange);
+        font-size: 1.1rem;
+        display: block;
+        margin-top: 0.15rem;
+      }
+      .public-header p.muted {
+        margin: 0.6rem 0 0;
+        font-size: 0.95rem;
+      }
+      .public-main {
+        max-width: 640px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0 1rem 6rem;
+        flex: 1;
+      }
+      .check-card {
+        background: var(--bg2);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 1.6rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        margin-top: 1rem;
+      }
+      .check-card .title {
+        font-size: 1.25rem;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 0.3rem;
+      }
+      .check-card .subtitle {
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 1.2rem;
+      }
+      #phoneInput {
+        font-size: 1.35rem;
+        letter-spacing: 2px;
+        text-align: center;
+        font-weight: 700;
+        padding: 0.9rem;
+        margin-bottom: 0.8rem;
+      }
+
+      .result-member {
+        background: var(--bg2);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 1.4rem;
+        margin-top: 1rem;
+      }
+      .result-member .name {
+        font-size: 1.3rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+      }
+      .shop-box {
+        background: var(--bg3);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 1.1rem;
+        margin-bottom: 0.75rem;
+      }
+      .shop-box .shop-name {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--muted);
+      }
+      .shop-box .shop-pts {
+        font-size: 2.6rem;
+        font-weight: 900;
+        color: var(--orange);
+        line-height: 1;
+        display: flex;
+        align-items: baseline;
+        gap: 0.4rem;
+      }
+      .shop-box .shop-pts span {
+        font-size: 1rem;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .shop-box .progress {
+        height: 8px;
+        background: var(--bg);
+        border-radius: 6px;
+        overflow: hidden;
+        margin-top: 0.75rem;
+      }
+      .shop-box .progress > i {
+        display: block;
+        height: 100%;
+        background: var(--orange);
+        transition: 0.4s;
+      }
+      .shop-box .reward-note {
+        font-size: 0.82rem;
+        color: var(--muted);
+        margin-top: 0.5rem;
+      }
+      .shop-box.done {
+        border-color: rgba(34, 197, 94, 0.5);
+      }
+      .shop-box.done .shop-pts {
+        color: var(--green);
+      }
+      .shop-box.done .progress > i {
+        background: var(--green);
+      }
+
+      #btnAdminLogin {
+        position: fixed !important;
+        right: 20px !important;
+        bottom: 20px !important;
+        width: 56px !important;
+        height: 56px !important;
+        border-radius: 50% !important;
+        background: #1d1d22 !important;
+        color: #9a9aa5 !important;
+        border: 1px solid #2c2c33 !important;
+        font-size: 24px !important;
+        cursor: pointer !important;
+        z-index: 99999 !important;
+        transition: 0.2s !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6) !important;
+        pointer-events: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        line-height: 1 !important;
+      }
+      #btnAdminLogin:hover {
+        color: #ff7a18 !important;
+        border-color: #ff7a18 !important;
+        transform: scale(1.08);
+      }
+      #btnAdminLogin.hidden {
+        display: none !important;
+      }
+
+      .modal {
+        position: fixed !important;
+        inset: 0 !important;
+        background: rgba(0, 0, 0, 0.85) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 1rem !important;
+        z-index: 99998 !important;
+        backdrop-filter: blur(4px);
+      }
+      .modal-box {
+        background: var(--bg2);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        width: 100%;
+        max-width: 440px;
+        max-height: 92vh;
+        overflow: auto;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
+      }
+      .modal-box.wide {
+        max-width: 860px;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 0.6rem;
+        justify-content: flex-end;
+        margin-top: 1.2rem;
+      }
+      .login-mini-logo {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: #fff;
+        object-fit: contain;
+        padding: 5px;
+        margin: 0 auto 0.8rem;
+        display: block;
+      }
+
+      .app {
+        display: flex;
+        min-height: 100vh;
+      }
+      .sidebar {
+        width: 220px;
+        background: var(--bg2);
+        border-right: 1px solid var(--line);
+        padding: 1rem 0.7rem;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        flex-shrink: 0;
+      }
+      .sidebar .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.4rem 0.4rem 1rem;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 0.8rem;
+      }
+      .sidebar .brand img {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: #fff;
+        object-fit: contain;
+      }
+      .sidebar .brand b {
+        font-size: 0.95rem;
+      }
+      .nav-item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 0.6rem 0.7rem;
+        border-radius: 9px;
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        font-family: inherit;
+        font-size: 0.92rem;
+        cursor: pointer;
+        margin-bottom: 0.15rem;
+      }
+      .nav-item:hover {
+        background: var(--bg3);
+        color: var(--fg);
+      }
+      .nav-item.active {
+        background: var(--orange);
+        color: #111;
+        font-weight: 700;
+      }
+      .content {
+        flex: 1;
+        padding: 1.2rem;
+        min-width: 0;
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      .badge {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        background: var(--bg3);
+        border: 1px solid var(--line);
+      }
+      .badge.ok {
+        background: rgba(34, 197, 94, 0.15);
+        color: var(--green);
+        border-color: rgba(34, 197, 94, 0.4);
+      }
+      .badge.warn {
+        background: rgba(245, 179, 1, 0.15);
+        color: var(--yellow);
+        border-color: rgba(245, 179, 1, 0.4);
+      }
+      .badge.bad {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--red);
+        border-color: rgba(239, 68, 68, 0.4);
+      }
+      @media (max-width: 860px) {
+        .app {
+          flex-direction: column;
+        }
+        .sidebar {
+          width: 100%;
+          height: auto;
+          position: static;
+          display: flex;
+          overflow-x: auto;
+          padding: 0.6rem;
+          gap: 0.3rem;
+          align-items: center;
+        }
+        .sidebar .brand {
+          border: none;
+          margin: 0;
+          padding: 0.2rem 0.6rem 0.2rem 0;
+        }
+        .nav-item {
+          white-space: nowrap;
+          margin: 0;
+        }
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+      th,
+      td {
+        padding: 0.55rem 0.6rem;
+        text-align: left;
+        border-bottom: 1px solid var(--line);
+        vertical-align: middle;
+      }
+      th {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      tbody tr:hover {
+        background: var(--bg3);
+      }
+      .table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .stat {
+        background: var(--bg3);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 0.9rem;
+      }
+      .stat .lbl {
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-bottom: 0.3rem;
+      }
+      .stat .val {
+        font-size: 1.45rem;
+        font-weight: 800;
+        color: var(--orange);
+        line-height: 1.15;
+      }
+      .stat .val.sm {
+        font-size: 1.05rem;
+      }
+      .pos-wrap {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 1rem;
+        align-items: start;
+      }
+      @media (max-width: 1000px) {
+        .pos-wrap {
+          grid-template-columns: 1fr;
+        }
+      }
+      .prod-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(122px, 1fr));
+        gap: 0.6rem;
+        max-height: 62vh;
+        overflow: auto;
+        padding-right: 0.2rem;
+      }
+      .prod-btn {
+        background: var(--bg3);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 0.7rem 0.5rem;
+        color: var(--fg);
+        cursor: pointer;
+        font-family: inherit;
+        text-align: center;
+        min-height: 96px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 0.3rem;
+      }
+      .prod-btn:hover {
+        border-color: var(--orange);
+      }
+      .prod-btn .p-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        line-height: 1.25;
+      }
+      .prod-btn .p-price {
+        color: var(--orange);
+        font-weight: 800;
+        font-size: 0.95rem;
+      }
+      .prod-btn .p-stock {
+        font-size: 0.7rem;
+        color: var(--muted);
+      }
+      .cart-list {
+        max-height: 34vh;
+        overflow: auto;
+        margin: 0.5rem 0;
+      }
+      .cart-line {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 0;
+        border-bottom: 1px dashed var(--line);
+      }
+      .cart-line .c-name {
+        flex: 1;
+        font-size: 0.9rem;
+      }
+      .qty-ctl {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .qty-ctl button {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--bg3);
+        border: 1px solid var(--line);
+        color: var(--fg);
+        font-size: 1.05rem;
+        cursor: pointer;
+      }
+      .qty-ctl span {
+        min-width: 26px;
+        text-align: center;
+        font-weight: 700;
+      }
+      .totals {
+        border-top: 1px solid var(--line);
+        padding-top: 0.7rem;
+      }
+      .totals .t-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.22rem 0;
+        font-size: 0.92rem;
+      }
+      .totals .t-row.grand {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--orange);
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--line);
+        margin-top: 0.4rem;
+      }
+      .member-box {
+        background: var(--bg3);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 0.75rem;
+        margin-bottom: 0.7rem;
+      }
+      .member-box.found {
+        border-color: var(--green);
+      }
+      .member-box.required {
+        border-color: var(--yellow);
+      }
+      .pay-methods {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        margin: 0.6rem 0;
+      }
+      .pay-methods button {
+        padding: 0.8rem 0.3rem;
+        border-radius: 10px;
+        background: var(--bg3);
+        border: 1px solid var(--line);
+        color: var(--fg);
+        cursor: pointer;
+        font-family: inherit;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+      .pay-methods button.active {
+        background: var(--orange);
+        color: #111;
+        border-color: var(--orange);
+      }
+      .money-input {
+        font-size: 1.5rem;
+        text-align: right;
+        font-weight: 800;
+      }
+      .change-box {
+        background: var(--bg3);
+        border-radius: 10px;
+        padding: 0.7rem;
+        margin-top: 0.6rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .change-box b {
+        font-size: 1.4rem;
+        color: var(--green);
+      }
+      .gp-card {
+        background: var(--bg3);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 1rem;
+        border-left: 4px solid var(--orange);
+      }
+      .gp-card .gp-shop {
+        font-size: 0.85rem;
+        color: var(--muted);
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+      }
+      .gp-card .gp-amount {
+        font-size: 1.8rem;
+        font-weight: 900;
+        color: var(--orange);
+        line-height: 1;
+      }
+      .gp-card .gp-meta {
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-top: 0.4rem;
+      }
+      #receiptArea {
+        display: none;
+      }
+      .receipt {
+        width: 78mm;
+        font-family: "Sarabun", monospace;
+        font-size: 12px;
+        color: #000;
+        background: #fff;
+        padding: 6px;
+      }
+      .receipt h2 {
+        font-size: 15px;
+        text-align: center;
+        margin: 0;
+      }
+      .receipt .center {
+        text-align: center;
+      }
+      .receipt hr {
+        border: none;
+        border-top: 1px dashed #000;
+        margin: 5px 0;
+      }
+      .receipt table {
+        width: 100%;
+        font-size: 12px;
+        color: #000;
+      }
+      .receipt th,
+      .receipt td {
+        border: none;
+        padding: 1px 0;
+      }
+      .receipt .r {
+        text-align: right;
+      }
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        #receiptArea,
+        #receiptArea * {
+          visibility: visible;
+        }
+        #receiptArea {
+          display: block;
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+        @page {
+          size: 80mm auto;
+          margin: 0;
+        }
+      }
+      .toast-wrap {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 100000;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-width: 340px;
+        pointer-events: none;
+      }
+      .toast {
+        background: var(--bg3);
+        border: 1px solid var(--line);
+        border-left: 4px solid var(--orange);
+        border-radius: 10px;
+        padding: 0.7rem 1rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        font-size: 0.9rem;
+        transition: opacity 0.3s;
+      }
+      .toast.ok {
+        border-left-color: var(--green);
+      }
+      .toast.err {
+        border-left-color: var(--red);
+      }
+      .empty {
+        text-align: center;
+        color: var(--muted);
+        padding: 2rem 1rem;
+        font-size: 0.9rem;
+      }
+      .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--line);
+        border-top-color: var(--orange);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        vertical-align: -3px;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "firebase/app": "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js",
+          "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="viewPublic" class="public-wrap">
+      <div class="public-header">
+        <img
+          src="logo/LogoKoolBar.PNG"
+          alt="Kool Bar"
+          class="logo-lg"
+          onerror="
+            this.outerHTML = '<div class=&quot;logo-fallback&quot;>KB</div>'
+          "
+        />
+        <h1>Kool Bar (อาจารย์)</h1>
+        <p class="muted">ระบบสมาชิกและสะสมแต้ม</p>
+      </div>
+
+      <div class="public-main">
+        <div class="check-card">
+          <div class="title">ตรวจสอบคะแนนสะสม</div>
+          <div class="subtitle">กรอกเบอร์โทรศัพท์ที่ใช้สมัครสมาชิก</div>
+
+          <input
+            id="phoneInput"
+            type="tel"
+            inputmode="numeric"
+            maxlength="10"
+            placeholder="08XXXXXXXX"
+            autocomplete="tel"
+          />
+          <button
+            id="btnCheckPoints"
+            type="button"
+            class="btn btn-primary btn-block"
+            style="min-height: 52px; font-size: 1.05rem"
+          >
+            🔍 ตรวจสอบคะแนน
+          </button>
+
+          <div id="checkMsg" class="msg" style="text-align: center"></div>
+        </div>
+
+        <div id="checkResult" class="hidden"></div>
+
+        <div
+          style="text-align: center; margin-top: 2rem; padding-bottom: 1rem"
+          class="muted"
+        >
+          <div style="font-size: 0.85rem">
+            สอบถามข้อมูลเพิ่มเติมได้ที่เคาน์เตอร์ร้าน
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="app" class="app hidden">
+      <aside class="sidebar">
+        <div class="brand">
+          <img
+            src="logo/LogoKoolBar.PNG"
+            alt="Kool Bar"
+            onerror="
+              this.outerHTML =
+                '<div class=&quot;logo-fallback&quot; style=&quot;width:38px;height:38px;font-size:.85rem&quot;>KB</div>'
+            "
+          />
+          <div>
+            <b>Kool Bar</b><br /><span class="muted" style="font-size: 0.72rem"
+              >(อาจารย์)</span
+            >
+          </div>
+        </div>
+        <div id="navWrap"></div>
+        <div
+          style="
+            padding: 0.6rem;
+            border-top: 1px solid var(--line);
+            margin-top: 0.6rem;
+          "
+        >
+          <div class="muted" style="font-size: 0.78rem" id="whoami">—</div>
+          <button
+            type="button"
+            class="nav-item"
+            id="btnLogout"
+            style="color: var(--red)"
+          >
+            🚪 ออกจากระบบ
+          </button>
+          <button
+            type="button"
+            class="nav-item"
+            id="btnBackPublic"
+            style="color: var(--muted)"
+          >
+            ← กลับหน้าลูกค้า
+          </button>
+        </div>
+      </aside>
+
+      <main class="content">
+        <div class="topbar">
+          <h2 id="pageTitle" style="margin: 0">แดชบอร์ด</h2>
+          <span class="badge ok" id="statusBadge">พร้อมใช้งาน</span>
+        </div>
+        <div id="view"></div>
+      </main>
+    </div>
+
+    <button type="button" id="btnAdminLogin" title="เข้าสู่ระบบพนักงาน">
+      ⚙
+    </button>
+
+    <div id="receiptArea"></div>
+
+    <script type="module">
+      /* =====================================================================
+   Kool Bar (อาจารย์) — POS v7
+   เปลี่ยน: กติกาสะสมแต้มแบบ "นับเป็นถ้วย" (perUnit)
+   ===================================================================== */
+
+      import { initializeApp } from "firebase/app";
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+        getDocs,
+        setDoc,
+        addDoc,
+        updateDoc,
+        deleteDoc,
+        collection,
+        query,
+        where,
+        limit,
+        orderBy,
+        serverTimestamp,
+        runTransaction,
+        Timestamp,
+      } from "firebase/firestore";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyB_DfElqqmGyktKgdeMmmOLYZxtk4ECTso",
+        authDomain: "kool-bar.firebaseapp.com",
+        projectId: "kool-bar",
+        storageBucket: "kool-bar.firebasestorage.app",
+        messagingSenderId: "950656413319",
+        appId: "1:950656413319:web:97d606b6817cebde06d222",
+        measurementId: "G-70JWZ178NS",
+      };
+      const fbApp = initializeApp(firebaseConfig);
+      const db = getFirestore(fbApp);
+
+      const LOGIN_USER = "adminkoolbar";
+      const LOGIN_PASS = "koolbar1234";
+      const SESSION_KEY = "kb_admin_session_v7";
+
+      const C = {
+        products: "products",
+        inventory: "inventory",
+        inventoryMovements: "inventoryMovements",
+        recipes: "recipes",
+        members: "members",
+        pointTransactions: "pointTransactions",
+        sales: "sales",
+        saleItems: "saleItems",
+        expenses: "expenses",
+        shifts: "shifts",
+        settings: "settings",
+        counters: "counters",
+        auditLogs: "auditLogs",
+      };
+
+      const SHOPS = {
+        meath: { id: "meath", name: "หมูกะทะย่าง", prefix: "MK" },
+        drink: { id: "drink", name: "น้ำดื่ม", prefix: "DR" },
+      };
+      const SHOP_IDS = Object.keys(SHOPS);
+      const shopName = (id) => SHOPS[id]?.name ?? id;
+
+      /* ===== กติกาคะแนนเริ่มต้น: นับเป็นถ้วย (perUnit) 1 แต้ม/ถ้วย ===== */
+      const DEFAULT_POINTS = {
+        shops: {
+          meath: {
+            mode: "perUnit",
+            pointsPerUnit: 1,
+            pointsPerBill: 0,
+            amountPerPoint: 0,
+            redeemThreshold: 10,
+            rewardDescription: "แลกฟรี 1 รายการ",
+          },
+          drink: {
+            mode: "perUnit",
+            pointsPerUnit: 1,
+            pointsPerBill: 0,
+            amountPerPoint: 0,
+            redeemThreshold: 10,
+            rewardDescription: "แลกฟรี 1 รายการ",
+          },
+        },
+      };
+      const DEFAULT_GP = { default: 0, meath: 0, drink: 0 };
+
+      /* ---------- UTILS ---------- */
+      const $ = (id) => document.getElementById(id);
+      const el = (h) => {
+        const t = document.createElement("template");
+        t.innerHTML = h.trim();
+        return t.content.firstElementChild;
+      };
+      const esc = (s) =>
+        String(s ?? "").replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      const fmtTHB = (n) =>
+        Number(n || 0).toLocaleString("th-TH", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+      const fmtNum = (n, d = 0) =>
+        Number(n || 0).toLocaleString("th-TH", {
+          minimumFractionDigits: d,
+          maximumFractionDigits: d,
+        });
+      const pad = (n) => String(n).padStart(2, "0");
+      const dateKey = (d = new Date()) =>
+        `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      const toDate = (v) => {
+        if (!v) return null;
+        if (v instanceof Date) return v;
+        if (v?.toDate) return v.toDate();
+        return new Date(v);
+      };
+      const fmtDT = (v) => {
+        const d = toDate(v);
+        return d
+          ? d.toLocaleString("th-TH", {
+              dateStyle: "short",
+              timeStyle: "short",
+            })
+          : "-";
+      };
+      const fmtD = (v) => {
+        const d = toDate(v);
+        return d ? d.toLocaleDateString("th-TH", { dateStyle: "medium" }) : "-";
+      };
+      const sod = (d = new Date()) => {
+        const x = new Date(d);
+        x.setHours(0, 0, 0, 0);
+        return x;
+      };
+      const eod = (d = new Date()) => {
+        const x = new Date(d);
+        x.setHours(23, 59, 59, 999);
+        return x;
+      };
+
+      function normalizePhone(raw) {
+        let d = String(raw ?? "").replace(/\D/g, "");
+        if (d.startsWith("66")) d = "0" + d.slice(2);
+        if (d.length === 9 && d.startsWith("0")) d = "0" + d;
+        return d;
+      }
+      const isValidPhone = (raw) => /^0\d{8,9}$/.test(normalizePhone(raw));
+      const maskPhone = (p) => {
+        const d = normalizePhone(p);
+        return d.length >= 6 ? d.slice(0, 3) + "****" + d.slice(-2) : "***";
+      };
+
+      async function sha256Hex(text) {
+        const buf = await crypto.subtle.digest(
+          "SHA-256",
+          new TextEncoder().encode(text),
+        );
+        return [...new Uint8Array(buf)]
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+      }
+      const memberId = (phone) => sha256Hex(normalizePhone(phone));
+
+      function toast(msg, type = "info", ms = 3200) {
+        let w = document.querySelector(".toast-wrap");
+        if (!w) {
+          w = el('<div class="toast-wrap"></div>');
+          document.body.appendChild(w);
+        }
+        const t = el(`<div class="toast ${type}">${esc(msg)}</div>`);
+        w.appendChild(t);
+        setTimeout(() => {
+          t.style.opacity = "0";
+          setTimeout(() => t.remove(), 300);
+        }, ms);
+      }
+      const setMsg = (n, txt, k = "") => {
+        if (!n) return;
+        n.textContent = txt || "";
+        n.className = "msg " + k;
+      };
+
+      function confirmDialog(
+        message,
+        { title = "ยืนยัน", okText = "ยืนยัน", danger = false } = {},
+      ) {
+        return new Promise((resolve) => {
+          const m = el(`<div class="modal"><div class="modal-box">
+      <h3>${esc(title)}</h3><p style="white-space:pre-wrap">${esc(message)}</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-a="cancel">ยกเลิก</button>
+        <button type="button" class="btn ${danger ? "btn-danger" : "btn-primary"}" data-a="ok">${esc(okText)}</button>
+      </div></div></div>`);
+          document.body.appendChild(m);
+          m.addEventListener("click", (e) => {
+            const a = e.target.dataset?.a;
+            if (a === "ok") {
+              m.remove();
+              resolve(true);
+            }
+            if (a === "cancel" || e.target === m) {
+              m.remove();
+              resolve(false);
+            }
+          });
+        });
+      }
+      async function audit(action, detail) {
+        try {
+          await addDoc(collection(db, C.auditLogs), {
+            action,
+            detail: detail ?? {},
+            userName: LOGIN_USER,
+            createdAt: serverTimestamp(),
+          });
+        } catch (e) {}
+      }
+      function downloadCSV(filename, headers, rows) {
+        const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+        const csv =
+          "\uFEFF" +
+          [
+            headers.map(q).join(","),
+            ...rows.map((r) => r.map(q).join(",")),
+          ].join("\r\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+      }
+
+      async function getSetting(id) {
+        const snap = await getDoc(doc(db, C.settings, id));
+        return snap.exists() ? snap.data() : null;
+      }
+      async function saveSetting(id, data) {
+        await setDoc(
+          doc(db, C.settings, id),
+          { ...data, updatedAt: serverTimestamp() },
+          { merge: true },
+        );
+      }
+
+      /* ---------- STATE ---------- */
+      const state = {
+        pointsCfg: DEFAULT_POINTS,
+        gpPercent: { ...DEFAULT_GP },
+        isAdmin: false,
+        shopId: null,
+        products: [],
+        cart: new Map(),
+        member: null,
+        shift: null,
+        clientToken: null,
+        redeem: false,
+        discount: 0,
+        change: 0,
+      };
+      const invDocId = (sid, pid) => `${sid}__${pid}`;
+      const newToken = () =>
+        crypto.randomUUID
+          ? crypto.randomUUID()
+          : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+              const r = (Math.random() * 16) | 0;
+              return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+            });
+      const emptyPoints = () => ({ meath: 0, drink: 0 });
+
+      function getGpPct(shopId) {
+        const g = state.gpPercent || {};
+        const v = Number(g[shopId]);
+        if (Number.isFinite(v) && v > 0) return v;
+        return Number(g.default) || 0;
+      }
+
+      const calcTotals = () => {
+        let sub = 0;
+        for (const { product, qty } of state.cart.values())
+          sub += Number(product.price || 0) * qty;
+        const d = Number(state.discount || 0);
+        return { subtotal: sub, discount: d, total: Math.max(0, sub - d) };
+      };
+      const redeemThreshold = (sid) =>
+        Math.max(
+          1,
+          Math.floor(
+            Number(state.pointsCfg?.shops?.[sid]?.redeemThreshold) || 10,
+          ),
+        );
+
+      /* =====================================================================
+   ★ calcEarned — คิดแต้มตามกติกา (v7 เพิ่ม perUnit)
+   - perUnit   : นับจำนวนชิ้น/ถ้วย × pointsPerUnit (ค่าเริ่มต้น 1)
+   - perBill   : แต้มคงที่ต่อบิล
+   - perAmount : ทุก ๆ amountPerPoint บาท = 1 แต้ม
+   ★ รับ items เพื่อให้รู้จำนวนชิ้นในตะกร้า
+   ===================================================================== */
+      function calcEarned(sid, total, items) {
+        const c = state.pointsCfg?.shops?.[sid];
+        if (!c) return 0;
+
+        // นับเป็นถ้วย/ชิ้น
+        if (c.mode === "perUnit") {
+          const perUnit = Math.max(0, Number(c.pointsPerUnit));
+          const rate = Number.isFinite(perUnit) ? perUnit : 1;
+          if (rate <= 0) return 0;
+          const list = Array.isArray(items) ? items : [];
+          let totalQty = 0;
+          for (const it of list) {
+            // รองรับทั้ง {qty} และ {product,qty}
+            const q = Number(it?.qty ?? 0);
+            if (Number.isFinite(q) && q > 0) totalQty += q;
+          }
+          return Math.max(0, Math.floor(totalQty * rate));
+        }
+
+        // แต้มต่อบิล
+        if (c.mode === "perBill")
+          return Math.max(0, Math.floor(Number(c.pointsPerBill) || 0));
+
+        // แต้มตามยอดซื้อ
+        if (c.mode === "perAmount") {
+          const per = Number(c.amountPerPoint) || 0;
+          return per > 0 ? Math.max(0, Math.floor(total / per)) : 0;
+        }
+
+        return 0;
+      }
+
+      /* ---------- VIEW SWITCH ---------- */
+      function showPublicView() {
+        $("viewPublic").classList.remove("hidden");
+        $("app").classList.add("hidden");
+        $("btnAdminLogin").classList.remove("hidden");
+        state.isAdmin = false;
+        $("checkResult").classList.add("hidden");
+        $("checkResult").innerHTML = "";
+        $("phoneInput").value = "";
+        setMsg($("checkMsg"), "");
+      }
+      function showAdminView() {
+        $("viewPublic").classList.add("hidden");
+        $("app").classList.remove("hidden");
+        $("btnAdminLogin").classList.add("hidden");
+        state.isAdmin = true;
+      }
+
+      /* ---------- LOGIN MODAL ---------- */
+      function openLoginModal() {
+        if (document.getElementById("adminLoginModal")) return;
+
+        const m =
+          el(`<div id="adminLoginModal" class="modal"><div class="modal-box">
+    <img src="logo/LogoKoolBar.PNG" class="login-mini-logo" alt="Kool Bar"
+         onerror="this.outerHTML='<div class=&quot;logo-fallback&quot; style=&quot;width:72px;height:72px;font-size:1.4rem&quot;>KB</div>'">
+    <h3 style="text-align:center;margin-bottom:.2rem">เข้าสู่ระบบพนักงาน</h3>
+    <p class="muted" style="text-align:center;font-size:.85rem;margin:0 0 1rem">สำหรับผู้ดูแลและพนักงานขายเท่านั้น</p>
+    <label for="loginUser">ชื่อผู้ใช้</label>
+    <input id="loginUser" type="text" autocomplete="username" placeholder="adminkoolbar">
+    <label for="loginPass">รหัสผ่าน</label>
+    <input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••••">
+    <div class="msg err" id="loginErr"></div>
+    <div class="modal-actions">
+      <button type="button" id="loginCancelBtn" class="btn btn-ghost">ยกเลิก</button>
+      <button type="button" id="loginOkBtn" class="btn btn-primary">เข้าสู่ระบบ</button>
+    </div>
+  </div></div>`);
+        document.body.appendChild(m);
+
+        const uIn = m.querySelector("#loginUser");
+        const pIn = m.querySelector("#loginPass");
+        const err = m.querySelector("#loginErr");
+
+        setTimeout(() => {
+          try {
+            uIn.focus();
+          } catch (e) {}
+        }, 100);
+
+        const closeModal = () => {
+          if (m.parentNode) m.remove();
+        };
+
+        const tryLogin = async () => {
+          const u = (uIn.value || "").trim();
+          const p = pIn.value || "";
+          if (!u || !p) {
+            setMsg(err, "กรอกชื่อผู้ใช้และรหัสผ่าน", "err");
+            return;
+          }
+          if (u !== LOGIN_USER || p !== LOGIN_PASS) {
+            setMsg(err, "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง", "err");
+            return;
+          }
+          closeModal();
+          try {
+            localStorage.setItem(SESSION_KEY, "1");
+          } catch (e) {}
+          toast("ยินดีต้อนรับเข้าสู่ระบบ", "ok");
+          try {
+            await loadSettings();
+          } catch (e) {
+            console.warn("loadSettings:", e);
+          }
+          showAdminView();
+          renderNav();
+          try {
+            await navigate("dashboard");
+          } catch (e) {
+            console.error(e);
+          }
+        };
+
+        m.querySelector("#loginOkBtn").addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          tryLogin();
+        });
+        m.querySelector("#loginCancelBtn").addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeModal();
+        });
+
+        const onEnter = (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            tryLogin();
+          }
+        };
+        uIn.addEventListener("keydown", onEnter);
+        pIn.addEventListener("keydown", onEnter);
+        m.addEventListener("click", (e) => {
+          if (e.target === m) closeModal();
+        });
+      }
+
+      /* ---------- LOGOUT ---------- */
+      function doLogout() {
+        try {
+          localStorage.removeItem(SESSION_KEY);
+        } catch (e) {}
+        state.cart.clear();
+        state.member = null;
+        state.shift = null;
+        state.shopId = null;
+        state.clientToken = null;
+        state.isAdmin = false;
+        showPublicView();
+        toast("ออกจากระบบแล้ว", "info");
+      }
+
+      /* ---------- CUSTOMER: CHECK POINTS ---------- */
+      async function checkPoints() {
+        const phone = normalizePhone($("phoneInput").value);
+        const msg = $("checkMsg");
+        const result = $("checkResult");
+
+        if (!isValidPhone(phone)) {
+          setMsg(
+            msg,
+            "กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก เริ่มด้วย 0)",
+            "err",
+          );
+          return;
+        }
+        setMsg(msg, "กำลังตรวจสอบ…");
+        result.classList.add("hidden");
+        $("btnCheckPoints").disabled = true;
+
+        try {
+          const id = await memberId(phone);
+          const snap = await getDoc(doc(db, C.members, id));
+
+          if (!snap.exists()) {
+            setMsg(
+              msg,
+              "ไม่พบสมาชิกสำหรับเบอร์นี้ — สมัครได้ที่เคาน์เตอร์ร้าน",
+              "err",
+            );
+            return;
+          }
+          const m = snap.data();
+          if (m.status === "blocked") {
+            setMsg(msg, "บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่อพนักงาน", "err");
+            return;
+          }
+          setMsg(msg, "", "");
+
+          const cfg = state.pointsCfg?.shops || DEFAULT_POINTS.shops;
+          const pts = { ...emptyPoints(), ...(m.points || {}) };
+
+          const boxes = SHOP_IDS.map((sid) => {
+            const shop = SHOPS[sid];
+            const c = cfg[sid] || {};
+            const th = Math.max(1, Number(c.redeemThreshold) || 10);
+            const cur = Number(pts[sid] || 0);
+            const reward =
+              c.rewardDescription?.trim() || `แลกรางวัลฟรี 1 รายการ`;
+            const pct = Math.min(100, Math.round(((cur % th) / th) * 100));
+            const isDone = cur >= th;
+            const remain = isDone ? 0 : th - cur;
+            return `<div class="shop-box ${isDone ? "done" : ""}">
+        <div class="shop-name">${esc(shop.name)}</div>
+        <div class="shop-pts">${cur} <span>แต้ม</span></div>
+        <div class="progress"><i style="width:${isDone ? 100 : pct}%"></i></div>
+        <div class="reward-note">
+          ${
+            isDone
+              ? `🎉 ครบ ${th} แต้มแล้ว — ${esc(reward)}`
+              : `อีก ${remain} แต้ม จะครบ ${th} แต้ม — ${esc(reward)}`
+          }
+        </div>
+      </div>`;
+          }).join("");
+
+          result.innerHTML = `
+      <div class="result-member">
+        <div class="name">👋 ${esc(m.displayName || "คุณ" + (m.nickname || ""))}</div>
+        ${boxes}
+        <p class="hint" style="text-align:center;margin-top:1rem">
+          คะแนนแยกตามร้าน ไม่สามารถนำข้ามร้านมารวมกันได้<br>
+          อัปเดตล่าสุด ${new Date().toLocaleString("th-TH")}
+        </p>
+      </div>`;
+          result.classList.remove("hidden");
+        } catch (e) {
+          console.error(e);
+          setMsg(
+            msg,
+            "เกิดข้อผิดพลาด: " + (e.message || "ไม่ทราบสาเหตุ"),
+            "err",
+          );
+        } finally {
+          $("btnCheckPoints").disabled = false;
+        }
+      }
+
+      /* ---------- LOAD SETTINGS ---------- */
+      async function loadSettings() {
+        try {
+          const [pt, shop] = await Promise.all([
+            getSetting("points"),
+            getSetting("shop"),
+          ]);
+          if (pt?.shops) state.pointsCfg = pt;
+          if (shop?.gpPercent) {
+            state.gpPercent = {
+              default: Number(shop.gpPercent.default || 0),
+              meath: Number(shop.gpPercent.meath || 0),
+              drink: Number(shop.gpPercent.drink || 0),
+            };
+          } else {
+            state.gpPercent = { ...DEFAULT_GP };
+          }
+        } catch (e) {
+          console.warn("loadSettings:", e.message);
+        }
+      }
+
+      /* ---------- ROUTER ---------- */
+      const PAGES = [
+        { id: "dashboard", label: "📊 แดชบอร์ด", render: renderDashboard },
+        { id: "pos", label: "🛒 ขายสินค้า", render: renderPOS },
+        { id: "products", label: "📦 สินค้า", render: renderProducts },
+        { id: "inventory", label: "🏷️ สต๊อก", render: renderInventory },
+        { id: "members", label: "👥 สมาชิก", render: renderMembers },
+        { id: "expenses", label: "💸 รายจ่าย", render: renderExpenses },
+        { id: "reports", label: "📈 รายงาน", render: renderReports },
+        { id: "settings", label: "⚙️ ตั้งค่า", render: renderSettings },
+      ];
+      function renderNav() {
+        $("navWrap").innerHTML = PAGES.map(
+          (p, i) =>
+            `<button type="button" class="nav-item ${i === 0 ? "active" : ""}" data-page="${p.id}">${esc(p.label)}</button>`,
+        ).join("");
+        $("navWrap").addEventListener("click", (e) => {
+          const id = e.target.dataset?.page;
+          if (id) navigate(id);
+        });
+        $("whoami").textContent = "adminkoolbar • ผู้ดูแลร้าน";
+      }
+      async function navigate(id) {
+        const page = PAGES.find((p) => p.id === id);
+        if (!page) return;
+        document
+          .querySelectorAll("#navWrap .nav-item")
+          .forEach((b) => b.classList.toggle("active", b.dataset.page === id));
+        $("pageTitle").textContent = page.label.replace(/^[^\s]+\s/, "");
+        $("view").innerHTML =
+          `<div class="card"><span class="spinner"></span> กำลังโหลด…</div>`;
+        try {
+          await page.render();
+        } catch (e) {
+          console.error(e);
+          $("view").innerHTML =
+            `<div class="card"><div class="msg err">โหลดไม่สำเร็จ: ${esc(e.message)}</div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="location.reload()">โหลดใหม่</button></div>`;
+        }
+      }
+
+      /* ---------- DASHBOARD ---------- */
+      async function renderDashboard() {
+        const now = new Date();
+        const [salesSnap, expSnap, invSnap, prodSnap] = await Promise.all([
+          getDocs(
+            query(
+              collection(db, C.sales),
+              where("createdAt", ">=", sod(now)),
+              where("createdAt", "<=", eod(now)),
+              limit(500),
+            ),
+          ),
+          getDocs(
+            query(
+              collection(db, C.expenses),
+              where("date", ">=", sod(now)),
+              where("date", "<=", eod(now)),
+              limit(200),
+            ),
+          ),
+          getDocs(collection(db, C.inventory)),
+          getDocs(collection(db, C.products)),
+        ]);
+        const sales = salesSnap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .filter((s) => s.status === "completed");
+        const expenses = expSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const prodMap = new Map(prodSnap.docs.map((d) => [d.id, d.data()]));
+
+        let total = 0,
+          cash = 0,
+          transfer = 0,
+          cost = 0;
+        const byShop = Object.fromEntries(
+          SHOP_IDS.map((s) => [
+            s,
+            {
+              total: 0,
+              count: 0,
+              cost: 0,
+              gpPct: getGpPct(s),
+              gp: 0,
+              grossProfit: 0,
+            },
+          ]),
+        );
+        for (const s of sales) {
+          const t = Number(s.total || 0);
+          total += t;
+          cost += Number(s.grossCost || 0);
+          if (byShop[s.shopId]) {
+            byShop[s.shopId].total += t;
+            byShop[s.shopId].count++;
+            byShop[s.shopId].cost += Number(s.grossCost || 0);
+          }
+          for (const p of s.payments || []) {
+            if (p.method === "cash") cash += Number(p.amount || 0);
+            if (p.method === "transfer") transfer += Number(p.amount || 0);
+          }
+        }
+        let totalGp = 0;
+        for (const sid of SHOP_IDS) {
+          const bs = byShop[sid];
+          bs.gp = (bs.total * bs.gpPct) / 100;
+          bs.grossProfit = bs.total - bs.cost;
+          totalGp += bs.gp;
+        }
+
+        const expTotal = expenses.reduce(
+          (a, e) => a + Number(e.amount || 0),
+          0,
+        );
+        let stockValue = 0,
+          low = 0;
+        for (const d of invSnap.docs) {
+          const inv = d.data(),
+            p = prodMap.get(inv.productId) || {};
+          const qty = Number(inv.qty || 0);
+          stockValue += qty * Number(p.cost || 0);
+          const min = Number(inv.minQty ?? p.minQty ?? 0);
+          if (min > 0 && qty <= min) low++;
+        }
+
+        $("view").innerHTML = `
+    <div class="grid g4">
+      <div class="stat"><div class="lbl">ยอดขายวันนี้</div><div class="val">฿${fmtTHB(total)}</div>
+        <div class="muted" style="font-size:.75rem">${sales.length} บิล</div></div>
+      <div class="stat"><div class="lbl">เงินสด / เงินโอน</div><div class="val sm">฿${fmtTHB(cash)} / ฿${fmtTHB(transfer)}</div></div>
+      <div class="stat"><div class="lbl">ต้นทุนขาย</div><div class="val sm">฿${fmtTHB(cost)}</div></div>
+      <div class="stat"><div class="lbl">กำไรขั้นต้น</div>
+        <div class="val sm" style="color:${total - cost >= 0 ? "var(--green)" : "var(--red)"}">฿${fmtTHB(total - cost)}</div></div>
+    </div>
+
+    <div class="card" style="margin-top:1rem">
+      <h4>💼 ยอดขาย & GP แยกร้าน</h4>
+      <div class="grid g2">
+        ${SHOP_IDS.map((sid) => {
+          const bs = byShop[sid];
+          return `<div class="gp-card">
+            <div class="gp-shop">${esc(SHOPS[sid].name)} (GP ${bs.gpPct}%)</div>
+            <div class="grid g3" style="gap:.5rem;margin-top:.5rem">
+              <div>
+                <div class="muted" style="font-size:.72rem">ยอดขาย</div>
+                <div style="font-weight:800;font-size:1.1rem">฿${fmtTHB(bs.total)}</div>
+                <div class="muted" style="font-size:.72rem">${bs.count} บิล</div>
+              </div>
+              <div>
+                <div class="muted" style="font-size:.72rem">กำไรขั้นต้น</div>
+                <div style="font-weight:800;font-size:1.1rem;color:${bs.grossProfit >= 0 ? "var(--green)" : "var(--red)"}">฿${fmtTHB(bs.grossProfit)}</div>
+                <div class="muted" style="font-size:.72rem">ต้นทุน ฿${fmtTHB(bs.cost)}</div>
+              </div>
+              <div>
+                <div class="muted" style="font-size:.72rem">GP ที่ต้องจ่าย</div>
+                <div class="gp-amount">฿${fmtTHB(bs.gp)}</div>
+              </div>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+      <div class="gp-card" style="margin-top:.75rem;border-left-color:var(--green)">
+        <div class="gp-shop">รวม GP ทั้งกิจการ</div>
+        <div class="gp-amount" style="color:var(--green)">฿${fmtTHB(totalGp)}</div>
+        <div class="gp-meta">= ฿${fmtTHB(byShop.meath.gp)} (${esc(SHOPS.meath.name)}) + ฿${fmtTHB(byShop.drink.gp)} (${esc(SHOPS.drink.name)})</div>
+      </div>
+    </div>
+
+    <div class="grid g3" style="margin-top:1rem">
+      <div class="card"><h4>รายจ่ายวันนี้</h4>
+        <div style="font-size:1.5rem;font-weight:800;color:var(--red)">฿${fmtTHB(expTotal)}</div></div>
+      <div class="card"><h4>กำไรหลังหัก GP + รายจ่าย</h4>
+        <div style="font-size:1.5rem;font-weight:800;color:${total - cost - totalGp - expTotal >= 0 ? "var(--green)" : "var(--red)"}">฿${fmtTHB(total - cost - totalGp - expTotal)}</div></div>
+      <div class="card"><h4>มูลค่าสต๊อกรวม</h4>
+        <div style="font-size:1.5rem;font-weight:800">฿${fmtTHB(stockValue)}</div>
+        ${
+          low > 0
+            ? `<div class="badge warn" style="margin-top:.4rem">${low} รายการใกล้หมด</div>`
+            : `<div class="badge ok" style="margin-top:.4rem">สต๊อกปกติ</div>`
+        }</div>
+    </div>
+
+    <div class="card" style="margin-top:1rem">
+      <h4>บิลล่าสุด</h4>
+      ${salesTable(sales.slice(0, 10))}
+    </div>`;
+      }
+      function salesTable(sales) {
+        if (!sales.length)
+          return `<div class="empty">ยังไม่มีข้อมูลการขาย</div>`;
+        return `<div class="table-wrap"><table>
+    <thead><tr><th>บิล</th><th>เวลา</th><th>ร้าน</th><th>สมาชิก</th>
+      <th style="text-align:right">สุทธิ</th><th>ชำระ</th><th>สถานะ</th></tr></thead>
+    <tbody>${sales
+      .map(
+        (s) => `
+      <tr>
+        <td><b>${esc(s.billNo)}</b></td>
+        <td>${fmtDT(s.createdAt)}</td>
+        <td>${esc(shopName(s.shopId))}</td>
+        <td>${esc(s.memberDisplayName || "-")}<br>
+          <span class="muted" style="font-size:.75rem">${esc(s.memberPhoneMasked || "")}</span></td>
+        <td style="text-align:right">฿${fmtTHB(s.total)}</td>
+        <td>${esc((s.payments || []).map((p) => (p.method === "cash" ? "สด" : "โอน")).join("+"))}</td>
+        <td>${s.status === "completed" ? `<span class="badge ok">สำเร็จ</span>` : `<span class="badge bad">ยกเลิก</span>`}</td>
+      </tr>`,
+      )
+      .join("")}</tbody></table></div>`;
+      }
+
+      /* ---------- POS ---------- */
+      async function renderPOS() {
+        $("view").innerHTML = `
+    <div class="card">
+      <label>เลือกร้านย่อย</label>
+      <select id="posShop">
+        <option value="">— เลือก —</option>
+        ${SHOP_IDS.map((s) => `<option value="${s}" ${state.shopId === s ? "selected" : ""}>${esc(SHOPS[s].name)} (GP ${getGpPct(s)}%)</option>`).join("")}
+      </select>
+    </div>
+    <div id="shiftPanel"></div>
+    <div class="pos-wrap hidden" id="posWrap">
+      <section>
+        <div class="card">
+          <input id="prodSearch" placeholder="🔍 ค้นหาสินค้า..." autocomplete="off">
+          <div id="catFilter" class="row tight" style="margin-top:.6rem"></div>
+          <div id="prodGrid" class="prod-grid" style="margin-top:.8rem"></div>
+        </div>
+      </section>
+      <aside>
+        <div class="card">
+          <h3 style="font-size:1rem">🛒 ตะกร้า</h3>
+          <div id="cartList" class="cart-list"></div>
+          <div class="totals">
+            <div class="t-row"><span>รวม</span><span id="tSub">0.00</span></div>
+            <div class="t-row"><span>ส่วนลด</span>
+              <input id="discountInput" type="number" min="0" step="1" value="0"
+                style="width:100px;padding:.25rem .4rem;text-align:right"></div>
+            <div class="t-row grand"><span>สุทธิ</span><span id="tTotal">0.00</span></div>
+          </div>
+          <button type="button" id="btnClear" class="btn btn-ghost btn-sm btn-block" style="margin-top:.5rem">ล้างตะกร้า</button>
+        </div>
+        <div class="card">
+          <h3 style="font-size:1rem">👤 สมาชิก (บังคับ)</h3>
+          <div id="memberBox" class="member-box required">
+            <div class="muted" style="font-size:.85rem">กรุณาระบุเบอร์ลูกค้าก่อนชำระเงิน</div>
+          </div>
+          <div class="row" style="margin-top:.5rem">
+            <input id="memPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="เบอร์โทรศัพท์">
+            <button type="button" id="btnFindMem" class="btn" style="flex:0 0 auto">ค้นหา</button>
+          </div>
+          <div id="memMsg" class="msg"></div>
+          <button type="button" id="btnNewMem" class="btn btn-ghost btn-block hidden" style="margin-top:.5rem">+ สมัครสมาชิกใหม่</button>
+        </div>
+        <button type="button" id="btnCheckout" class="btn btn-primary btn-block"
+          style="font-size:1.05rem;min-height:56px">💰 ชำระเงิน</button>
+      </aside>
+    </div>`;
+
+        $("posShop").addEventListener("change", async (e) => {
+          state.shopId = e.target.value || null;
+          state.cart.clear();
+          state.member = null;
+          $("posWrap").classList.add("hidden");
+          $("shiftPanel").innerHTML = "";
+          if (!state.shopId) return;
+          await loadSettings();
+          await refreshShift();
+        });
+        if (state.shopId) await refreshShift();
+      }
+
+      async function refreshShift() {
+        const snap = await getDocs(
+          query(
+            collection(db, C.shifts),
+            where("shopId", "==", state.shopId),
+            limit(20),
+          ),
+        );
+        const opens = snap.docs.filter((d) => d.data().status === "open");
+        if (!opens.length) {
+          state.shift = null;
+          renderShiftOpen();
+        } else {
+          state.shift = { id: opens[0].id, ...opens[0].data() };
+          renderShiftOpen(true);
+          await enterSellUI();
+        }
+      }
+      function renderShiftOpen(open = false) {
+        if (open) {
+          const s = state.shift;
+          $("shiftPanel").innerHTML = `
+      <div class="card" style="border-color:rgba(34,197,94,.4)">
+        <div class="row">
+          <div style="flex:2"><b>✅ กะเปิดอยู่</b> — ${esc(shopName(state.shopId))}
+            <span class="muted">เปิด ${fmtDT(s.openedAt)} • เงินสดตั้งต้น ฿${fmtTHB(s.openingCash)}</span></div>
+          <button type="button" id="btnCloseShift" class="btn btn-ghost btn-sm" style="flex:0 0 auto">ปิดกะ</button>
+        </div>
+      </div>`;
+          $("btnCloseShift").addEventListener("click", doCloseShift);
+          return;
+        }
+        $("shiftPanel").innerHTML = `
+    <div class="card" style="border-color:rgba(245,179,1,.4)">
+      <h3 style="font-size:1rem">🔓 เปิดกะก่อนเริ่มขาย</h3>
+      <label>เงินสดตั้งต้นในลิ้นชัก (บาท)</label>
+      <input id="openCash" type="number" min="0" step="1" value="0" style="max-width:220px">
+      <div class="msg" id="openMsg"></div>
+      <button type="button" id="btnOpenShift" class="btn btn-primary" style="margin-top:.7rem">เปิดกะ</button>
+    </div>`;
+        $("btnOpenShift").addEventListener("click", async () => {
+          const cash = Number($("openCash").value) || 0;
+          $("btnOpenShift").disabled = true;
+          try {
+            const ref = await addDoc(collection(db, C.shifts), {
+              shopId: state.shopId,
+              openingCash: cash,
+              openedAt: serverTimestamp(),
+              status: "open",
+              cashSales: 0,
+              transferSales: 0,
+              salesTotal: 0,
+              billCount: 0,
+              refunds: 0,
+              cashOut: 0,
+            });
+            state.shift = {
+              id: ref.id,
+              shopId: state.shopId,
+              openingCash: cash,
+              cashSales: 0,
+              transferSales: 0,
+              refunds: 0,
+            };
+            toast("เปิดกะเรียบร้อย", "ok");
+            renderShiftOpen(true);
+            await enterSellUI();
+          } catch (e) {
+            setMsg($("openMsg"), e.message, "err");
+            $("btnOpenShift").disabled = false;
+          }
+        });
+      }
+      async function doCloseShift() {
+        const fresh = state.shift;
+        const expected =
+          Number(fresh.openingCash || 0) +
+          Number(fresh.cashSales || 0) -
+          Number(fresh.refunds || 0);
+        const m = el(`<div class="modal"><div class="modal-box">
+    <h3>ปิดกะ</h3>
+    <div class="stat" style="margin-bottom:.6rem">
+      <div class="lbl">เงินสดที่ควรมี</div>
+      <div class="val">฿${fmtTHB(expected)}</div>
+    </div>
+    <label>เงินสดที่นับได้จริง</label>
+    <input id="csCash" type="number" min="0" step="1" value="0" class="money-input">
+    <label>เงินสดที่เบิกออกระหว่างกะ</label>
+    <input id="csOut" type="number" min="0" step="1" value="0">
+    <label>หมายเหตุ</label>
+    <input id="csNote" placeholder="ไม่บังคับ">
+    <div class="stat" style="margin-top:.7rem">
+      <div class="lbl">ยอดขาด/เกิน</div>
+      <div class="val" id="csDiff">0.00</div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-a="cancel">ยกเลิก</button>
+      <button type="button" class="btn btn-primary" data-a="ok">ยืนยันปิดกะ</button>
+    </div></div></div>`);
+        document.body.appendChild(m);
+        const ci = m.querySelector("#csCash"),
+          co = m.querySelector("#csOut"),
+          cd = m.querySelector("#csDiff");
+        const recalc = () => {
+          const d =
+            (Number(ci.value) || 0) - (expected - (Number(co.value) || 0));
+          cd.textContent = fmtTHB(d);
+          cd.style.color = Math.abs(d) < 0.01 ? "var(--green)" : "var(--red)";
+        };
+        ci.addEventListener("input", recalc);
+        co.addEventListener("input", recalc);
+        recalc();
+
+        m.addEventListener("click", async (e) => {
+          const a = e.target.dataset?.a;
+          if (a === "cancel" || e.target === m) {
+            m.remove();
+            return;
+          }
+          if (a !== "ok") return;
+          e.target.disabled = true;
+          try {
+            const cashOut = Number(co.value) || 0;
+            const counted = Number(ci.value) || 0;
+            const finalExpected = expected - cashOut;
+            await updateDoc(doc(db, C.shifts, fresh.id), {
+              status: "closed",
+              closedAt: serverTimestamp(),
+              closingCash: counted,
+              expectedCash: finalExpected,
+              difference: counted - finalExpected,
+              cashOut,
+              closeNote: m.querySelector("#csNote").value.trim(),
+            });
+            m.remove();
+            toast(
+              `ปิดกะแล้ว — ขาด/เกิน ฿${fmtTHB(counted - finalExpected)}`,
+              Math.abs(counted - finalExpected) < 0.01 ? "ok" : "err",
+            );
+            state.shift = null;
+            $("posWrap").classList.add("hidden");
+            await refreshShift();
+          } catch (e2) {
+            toast(e2.message, "err");
+            e.target.disabled = false;
+          }
+        });
+      }
+
+      async function enterSellUI() {
+        $("posWrap").classList.remove("hidden");
+        const snap = await getDocs(
+          query(
+            collection(db, C.products),
+            where("shopId", "==", state.shopId),
+            limit(500),
+          ),
+        );
+        state.products = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .filter((p) => p.active !== false)
+          .sort(
+            (a, b) =>
+              (a.category || "").localeCompare(b.category || "", "th") ||
+              a.name.localeCompare(b.name, "th"),
+          );
+
+        const cats = [
+          ...new Set(state.products.map((p) => p.category || "อื่นๆ")),
+        ].sort();
+        $("catFilter").innerHTML =
+          `<button type="button" class="btn btn-sm btn-primary" data-cat="">ทั้งหมด</button>` +
+          cats
+            .map(
+              (c) =>
+                `<button type="button" class="btn btn-sm" data-cat="${esc(c)}">${esc(c)}</button>`,
+            )
+            .join("");
+        $("catFilter").addEventListener("click", (e) => {
+          const c = e.target.dataset?.cat;
+          if (c === undefined) return;
+          $("catFilter")
+            .querySelectorAll("button")
+            .forEach((b) => b.classList.remove("btn-primary"));
+          e.target.classList.add("btn-primary");
+          drawProducts(c, $("prodSearch").value);
+        });
+        $("prodSearch").addEventListener("input", (e) => {
+          const cat =
+            $("catFilter").querySelector(".btn-primary")?.dataset.cat || "";
+          drawProducts(cat, e.target.value);
+        });
+        $("discountInput").addEventListener("input", (e) => {
+          state.discount = Math.max(0, Number(e.target.value) || 0);
+          drawCart();
+        });
+        $("btnClear").addEventListener("click", async () => {
+          if (!state.cart.size) return;
+          if (await confirmDialog("ล้างตะกร้าทั้งหมด?", { danger: true })) {
+            state.cart.clear();
+            state.member = null;
+            state.discount = 0;
+            state.redeem = false;
+            $("discountInput").value = "0";
+            $("memPhone").value = "";
+            drawCart();
+            drawMember();
+          }
+        });
+        $("btnFindMem").addEventListener("click", findMember);
+        $("memPhone").addEventListener("keydown", (e) => {
+          if (e.key === "Enter") findMember();
+        });
+        $("memPhone").addEventListener("input", (e) => {
+          e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
+        });
+        $("btnNewMem").addEventListener("click", openNewMemberModal);
+        $("btnCheckout").addEventListener("click", openPayModal);
+
+        drawProducts();
+        drawCart();
+        drawMember();
+        $("discountInput").value = "0";
+      }
+      function drawProducts(cat = "", kw = "") {
+        const q = kw.trim().toLowerCase();
+        let list = state.products;
+        if (cat) list = list.filter((p) => (p.category || "อื่นๆ") === cat);
+        if (q)
+          list = list.filter(
+            (p) =>
+              (p.name || "").toLowerCase().includes(q) ||
+              (p.sku || "").toLowerCase().includes(q) ||
+              (p.barcode || "").includes(q),
+          );
+        if (!list.length) {
+          $("prodGrid").innerHTML =
+            `<div class="empty" style="grid-column:1/-1">ไม่พบสินค้า</div>`;
+          return;
+        }
+        $("prodGrid").innerHTML = list
+          .map(
+            (p) => `
+    <button type="button" class="prod-btn" data-id="${esc(p.id)}">
+      <div class="p-name">${esc(p.name)}</div>
+      <div class="p-price">฿${fmtTHB(p.price)}</div>
+      <div class="p-stock">${esc(p.unit || "")}</div>
+    </button>`,
+          )
+          .join("");
+        $("prodGrid")
+          .querySelectorAll(".prod-btn")
+          .forEach((b) =>
+            b.addEventListener("click", () => {
+              const p = state.products.find((x) => x.id === b.dataset.id);
+              if (!p) return;
+              const cur = state.cart.get(p.id);
+              state.cart.set(p.id, { product: p, qty: (cur?.qty || 0) + 1 });
+              drawCart();
+            }),
+          );
+      }
+      function drawCart() {
+        if (!state.cart.size) {
+          $("cartList").innerHTML = `<div class="empty">ยังไม่มีสินค้า</div>`;
+        } else {
+          $("cartList").innerHTML = [...state.cart.values()]
+            .map(
+              ({ product, qty }) => `
+      <div class="cart-line">
+        <div class="c-name">${esc(product.name)}<br>
+          <span class="muted" style="font-size:.78rem">฿${fmtTHB(product.price)} × ${qty}</span></div>
+        <div class="qty-ctl">
+          <button type="button" data-dec="${esc(product.id)}">−</button>
+          <span>${qty}</span>
+          <button type="button" data-inc="${esc(product.id)}">+</button>
+        </div>
+        <div style="min-width:80px;text-align:right;font-weight:700">฿${fmtTHB(product.price * qty)}</div>
+      </div>`,
+            )
+            .join("");
+          $("cartList")
+            .querySelectorAll("[data-inc]")
+            .forEach((b) =>
+              b.addEventListener("click", () => {
+                const id = b.dataset.inc,
+                  cur = state.cart.get(id);
+                if (cur) state.cart.set(id, { ...cur, qty: cur.qty + 1 });
+                drawCart();
+              }),
+            );
+          $("cartList")
+            .querySelectorAll("[data-dec]")
+            .forEach((b) =>
+              b.addEventListener("click", () => {
+                const id = b.dataset.dec,
+                  cur = state.cart.get(id);
+                if (!cur) return;
+                if (cur.qty <= 1) state.cart.delete(id);
+                else state.cart.set(id, { ...cur, qty: cur.qty - 1 });
+                drawCart();
+              }),
+            );
+        }
+        const { subtotal, total } = calcTotals();
+        $("tSub").textContent = fmtTHB(subtotal);
+        $("tTotal").textContent = fmtTHB(total);
+      }
+      function drawMember() {
+        const box = $("memberBox");
+        if (state.member) {
+          const m = state.member;
+          box.className = "member-box found";
+          box.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
+        <div>
+          <div style="font-weight:700">${esc(m.displayName || "สมาชิก")}</div>
+          <div class="muted" style="font-size:.8rem">${esc(m.phoneMasked || "")}</div>
+          <div style="font-size:.85rem;margin-top:.3rem">
+            ${SHOP_IDS.map((s) => `${esc(SHOPS[s].name)}: <b style="color:var(--orange)">${Number(m.points?.[s] || 0)}</b>`).join(" • ")}
+          </div>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="btnUnsetMember">เปลี่ยน</button>
+      </div>`;
+          box.querySelector("#btnUnsetMember").addEventListener("click", () => {
+            state.member = null;
+            state.redeem = false;
+            state.change = 0;
+            drawMember();
+          });
+          $("btnNewMem").classList.add("hidden");
+        } else {
+          box.className = "member-box required";
+          box.innerHTML = `<div class="muted" style="font-size:.85rem">กรุณาระบุเบอร์ลูกค้าก่อนชำระเงิน</div>`;
+          $("btnNewMem").classList.add("hidden");
+        }
+      }
+      async function findMember() {
+        const phone = normalizePhone($("memPhone").value);
+        const msg = $("memMsg");
+        if (!isValidPhone(phone)) {
+          setMsg(msg, "เบอร์ไม่ถูกต้อง", "err");
+          return;
+        }
+        setMsg(msg, "กำลังค้นหา…");
+        const id = await memberId(phone);
+        const snap = await getDoc(doc(db, C.members, id));
+        if (!snap.exists()) {
+          state.member = null;
+          setMsg(msg, "ไม่พบเบอร์นี้ในระบบ", "err");
+          drawMember();
+          $("btnNewMem").classList.remove("hidden");
+          return;
+        }
+        state.member = { id: snap.id, ...snap.data() };
+        setMsg(msg, "", "");
+        drawMember();
+        $("btnNewMem").classList.add("hidden");
+        toast(`พบสมาชิก ${state.member.displayName || ""}`, "ok", 1800);
+      }
+      function openNewMemberModal() {
+        const phone = normalizePhone($("memPhone").value);
+        if (!isValidPhone(phone)) {
+          toast("กรอกเบอร์ก่อน", "err");
+          return;
+        }
+        const m = el(`<div class="modal"><div class="modal-box">
+    <h3>สมัครสมาชิกใหม่</h3>
+    <label>เบอร์โทรศัพท์</label>
+    <input value="${esc(phone)}" readonly>
+    <label>ชื่อเล่นลูกค้า</label>
+    <input id="nmNick" maxlength="30" placeholder="เช่น บีม">
+    <p class="hint">ชื่อในระบบ: <b id="nmPreview">คุณ—</b></p>
+    <div class="msg"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-a="cancel">ยกเลิก</button>
+      <button type="button" class="btn btn-primary" data-a="ok">บันทึกและผูกกับบิล</button>
+    </div></div></div>`);
+        document.body.appendChild(m);
+        const nick = m.querySelector("#nmNick"),
+          prev = m.querySelector("#nmPreview"),
+          err = m.querySelector(".msg");
+        nick.addEventListener("input", () => {
+          prev.textContent = "คุณ" + (nick.value.trim() || "—");
+        });
+        nick.focus();
+        m.addEventListener("click", async (e) => {
+          const a = e.target.dataset?.a;
+          if (a === "cancel" || e.target === m) {
+            m.remove();
+            return;
+          }
+          if (a !== "ok") return;
+          const n = nick.value.trim();
+          if (!n) {
+            setMsg(err, "กรอกชื่อเล่น", "err");
+            return;
+          }
+          e.target.disabled = true;
+          try {
+            const id = await memberId(phone);
+            const ref = doc(db, C.members, id);
+            const result = await runTransaction(db, async (tx) => {
+              const snap = await tx.get(ref);
+              if (snap.exists()) {
+                return { created: false, member: { id, ...snap.data() } };
+              }
+              const data = {
+                phone,
+                phoneMasked: maskPhone(phone),
+                nickname: n,
+                displayName: `คุณ${n}`,
+                points: emptyPoints(),
+                totalSpent: emptyPoints(),
+                status: "active",
+                createdAt: serverTimestamp(),
+                lastVisitAt: null,
+              };
+              tx.set(ref, data);
+              return { created: true, member: { id, ...data } };
+            });
+            state.member = result.member;
+            m.remove();
+            drawMember();
+            toast(
+              result.created
+                ? "สมัครสมาชิกใหม่สำเร็จ"
+                : "เบอร์นี้มีสมาชิกอยู่แล้ว — ใช้ข้อมูลเดิม",
+              result.created ? "ok" : "info",
+            );
+          } catch (e2) {
+            setMsg(err, e2.message, "err");
+            e.target.disabled = false;
+          }
+        });
+      }
+
+      function openPayModal() {
+        if (!state.cart.size) {
+          toast("ยังไม่มีสินค้า", "err");
+          return;
+        }
+        if (!state.member) {
+          toast("ต้องระบุสมาชิกก่อนชำระเงิน", "err");
+          return;
+        }
+        const { total } = calcTotals();
+        const shopId = state.shopId;
+        const cartItems = [...state.cart.values()].map((v) => ({
+          qty: v.qty,
+          productId: v.product.id,
+        }));
+        const earned = calcEarned(shopId, total, cartItems);
+        const threshold = redeemThreshold(shopId);
+        const pts = Number(state.member.points?.[shopId] || 0);
+        const canRedeem = pts >= threshold;
+        const cfg = state.pointsCfg?.shops?.[shopId] || {};
+        const totalQty = cartItems.reduce((s, i) => s + i.qty, 0);
+        const earnedNote =
+          cfg.mode === "perUnit"
+            ? `นับเป็นถ้วย: ${totalQty} ถ้วย × ${Number(cfg.pointsPerUnit) || 1} แต้ม = ${earned} แต้ม`
+            : cfg.mode === "perAmount"
+              ? `ทุก ฿${cfg.amountPerPoint || "-"} = 1 แต้ม`
+              : `ได้ ${cfg.pointsPerBill || 0} แต้มต่อบิล`;
+        const gpHere = getGpPct(shopId);
+
+        const m = el(`<div class="modal"><div class="modal-box wide">
+    <h3>ชำระเงิน — ${esc(SHOPS[shopId].name)}</h3>
+    <div class="grid g2">
+      <div>
+        <div class="stat" style="margin-bottom:.8rem">
+          <div class="lbl">ยอดสุทธิ</div>
+          <div class="val" id="payTotal">฿${fmtTHB(total)}</div>
+        </div>
+        <label>วิธีชำระเงิน</label>
+        <div class="pay-methods" id="payMethods">
+          <button type="button" data-m="cash" class="active">💵 เงินสด</button>
+          <button type="button" data-m="transfer">📱 โอน</button>
+          <button type="button" data-m="split">🔀 แบ่ง</button>
+        </div>
+        <div id="cashWrap">
+          <label>รับเงินมา</label>
+          <input id="payCash" class="money-input" type="number" min="0" step="1" value="${Math.ceil(total)}">
+          <div class="row tight" style="margin-top:.4rem">
+            <button type="button" class="btn btn-ghost btn-sm" data-q="exact">พอดี</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-q="100">100</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-q="500">500</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-q="1000">1,000</button>
+          </div>
+          <div class="change-box"><span>เงินทอน</span><b id="payChange">0.00</b></div>
+        </div>
+        <div id="splitWrap" class="hidden">
+          <label>เงินสด</label><input id="splitCash" type="number" min="0" step="1" value="0">
+          <label>เงินโอน</label><input id="splitTr" type="number" min="0" step="1" value="0">
+          <div class="msg" id="splitMsg"></div>
+        </div>
+      </div>
+      <div>
+        <div class="stat" style="margin-bottom:.8rem">
+          <div class="lbl">สมาชิก</div>
+          <div class="val sm">${esc(state.member.displayName || "")}</div>
+        </div>
+        <div class="stat" style="margin-bottom:.8rem">
+          <div class="lbl">แต้มที่จะได้รับ</div>
+          <div class="val">${earned}</div>
+          <div class="muted" style="font-size:.75rem">${esc(earnedNote)}</div>
+        </div>
+        <div class="stat" style="margin-bottom:.8rem">
+          <div class="lbl">GP ร้านนี้ (${gpHere}%)</div>
+          <div class="val sm" style="color:var(--yellow)">฿${fmtTHB((total * gpHere) / 100)}</div>
+        </div>
+        ${
+          canRedeem
+            ? `<div class="stat">
+          <label style="margin:0;display:flex;gap:.5rem;align-items:center;color:var(--fg)">
+            <input type="checkbox" id="redeemCheck" style="width:auto">
+            <span>แลกรางวัล (ใช้ ${threshold} แต้ม • มี ${pts})</span>
+          </label></div>`
+            : ""
+        }
+        <label>หมายเหตุ</label>
+        <input id="payNote" placeholder="ไม่บังคับ">
+      </div>
+    </div>
+    <div id="payMsg" class="msg"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-a="cancel">กลับ</button>
+      <button type="button" class="btn btn-primary" data-a="ok" style="min-width:180px">ยืนยันการขาย</button>
+    </div></div></div>`);
+        document.body.appendChild(m);
+
+        let method = "cash";
+        const methodBtns = m.querySelectorAll("#payMethods button");
+        const cashWrap = m.querySelector("#cashWrap"),
+          splitWrap = m.querySelector("#splitWrap");
+        const payCash = m.querySelector("#payCash"),
+          payChange = m.querySelector("#payChange");
+        const splitCash = m.querySelector("#splitCash"),
+          splitTr = m.querySelector("#splitTr"),
+          splitMsg = m.querySelector("#splitMsg");
+        const payMsg = m.querySelector("#payMsg"),
+          redeemCheck = m.querySelector("#redeemCheck");
+
+        const recalcChange = () => {
+          const paid = Number(payCash.value) || 0;
+          payChange.textContent = fmtTHB(Math.max(0, paid - total));
+        };
+        payCash.addEventListener("input", recalcChange);
+        recalcChange();
+        m.querySelectorAll("[data-q]").forEach((b) =>
+          b.addEventListener("click", () => {
+            const v = b.dataset.q;
+            payCash.value = v === "exact" ? Math.ceil(total) : Number(v);
+            recalcChange();
+          }),
+        );
+        methodBtns.forEach((b) =>
+          b.addEventListener("click", () => {
+            methodBtns.forEach((x) => x.classList.remove("active"));
+            b.classList.add("active");
+            method = b.dataset.m;
+            cashWrap.classList.toggle("hidden", method !== "cash");
+            splitWrap.classList.toggle("hidden", method !== "split");
+          }),
+        );
+        const checkSplit = () => {
+          if (method !== "split") return true;
+          const s =
+            (Number(splitCash.value) || 0) + (Number(splitTr.value) || 0);
+          const d = s - total;
+          splitMsg.className = "msg";
+          if (Math.abs(d) < 0.01) {
+            splitMsg.textContent = "พอดี";
+            splitMsg.classList.add("ok");
+            return true;
+          }
+          splitMsg.textContent =
+            d > 0 ? `เกิน ฿${fmtTHB(d)}` : `ขาด ฿${fmtTHB(-d)}`;
+          splitMsg.classList.add("err");
+          return false;
+        };
+        splitCash.addEventListener("input", checkSplit);
+        splitTr.addEventListener("input", checkSplit);
+
+        m.addEventListener("click", async (e) => {
+          const a = e.target.dataset?.a;
+          if (a === "cancel" || e.target === m) {
+            m.remove();
+            return;
+          }
+          if (a !== "ok") return;
+
+          let payments;
+          if (method === "cash") {
+            const paid = Number(payCash.value) || 0;
+            if (paid + 0.001 < total) {
+              setMsg(payMsg, "รับเงินน้อยกว่ายอดสุทธิ", "err");
+              return;
+            }
+            payments = [{ method: "cash", amount: total }];
+            state.change = paid - total;
+          } else if (method === "transfer") {
+            payments = [{ method: "transfer", amount: total }];
+            state.change = 0;
+          } else {
+            if (!checkSplit()) return;
+            const sc = Number(splitCash.value) || 0,
+              st = Number(splitTr.value) || 0;
+            payments = [];
+            if (sc > 0) payments.push({ method: "cash", amount: sc });
+            if (st > 0) payments.push({ method: "transfer", amount: st });
+            state.change = 0;
+          }
+          state.redeem = !!redeemCheck?.checked;
+
+          e.target.disabled = true;
+          e.target.textContent = "กำลังบันทึก…";
+          try {
+            const res = await commitSale({
+              payments,
+              note: m.querySelector("#payNote").value.trim(),
+            });
+            const change = state.change;
+            m.remove();
+            showDoneModal({ ...res, change, payments });
+            state.cart.clear();
+            state.member = null;
+            state.discount = 0;
+            state.redeem = false;
+            $("discountInput").value = "0";
+            $("memPhone").value = "";
+            setMsg($("memMsg"), "");
+            drawCart();
+            drawMember();
+            const snap = await getDocs(
+              query(
+                collection(db, C.shifts),
+                where("shopId", "==", shopId),
+                limit(20),
+              ),
+            );
+            const opens = snap.docs.filter((d) => d.data().status === "open");
+            if (opens.length)
+              state.shift = { id: opens[0].id, ...opens[0].data() };
+          } catch (e2) {
+            console.error(e2);
+            setMsg(
+              payMsg,
+              e2.code === "duplicate" ? "บิลนี้ถูกบันทึกแล้ว" : e2.message,
+              "err",
+            );
+            e.target.disabled = false;
+            e.target.textContent = "ยืนยันการขาย";
+          }
+        });
+      }
+
+      async function commitSale({ payments, note }) {
+        const shopId = state.shopId;
+        const token = state.clientToken || (state.clientToken = newToken());
+        const { subtotal, discount, total } = calcTotals();
+        const paid = payments.reduce((s, p) => s + Number(p.amount || 0), 0);
+        if (Math.abs(paid - total) > 0.009) throw new Error("ยอดชำระไม่ตรง");
+
+        const saleRef = doc(db, C.sales, token);
+        const memberRef = doc(db, C.members, state.member.id);
+        const shiftRef = doc(db, C.shifts, state.shift.id);
+
+        const items = [...state.cart.values()].map(({ product, qty }) => ({
+          productId: product.id,
+          name: product.name,
+          sku: product.sku || "",
+          unit: product.unit || "ชิ้น",
+          price: Number(product.price || 0),
+          cost: Number(product.cost || 0),
+          qty,
+          lineTotal: Number(product.price || 0) * qty,
+        }));
+
+        const recipeRefs = items.map((it) => doc(db, C.recipes, it.productId));
+        const prodRefs = items.map((it) => doc(db, C.products, it.productId));
+        const ckey = `bill_${shopId}_${dateKey().replace(/-/g, "")}`;
+        const cRef = doc(db, C.counters, ckey);
+        const gpPct = getGpPct(shopId);
+
+        const billNo = await runTransaction(db, async (tx) => {
+          // READS
+          const dup = await tx.get(saleRef);
+          if (dup.exists()) {
+            const e = new Error("บันทึกซ้ำ");
+            e.code = "duplicate";
+            throw e;
+          }
+          const memberSnap = await tx.get(memberRef);
+          if (!memberSnap.exists()) throw new Error("ไม่พบสมาชิก");
+          const recipeSnaps = await Promise.all(
+            recipeRefs.map((r) => tx.get(r)),
+          );
+          const prodSnaps = await Promise.all(prodRefs.map((r) => tx.get(r)));
+          const cSnap = await tx.get(cRef);
+          const shSnap = await tx.get(shiftRef);
+
+          const deductions = new Map();
+          const pushDed = (sid, pid, q) => {
+            if (!pid || !q) return;
+            const k = invDocId(sid, pid);
+            const c = deductions.get(k) || {
+              shopId: sid,
+              productId: pid,
+              qty: 0,
+            };
+            c.qty += q;
+            deductions.set(k, c);
+          };
+          items.forEach((it, i) => {
+            const rec = recipeSnaps[i].exists() ? recipeSnaps[i].data() : null;
+            const prd = prodSnaps[i].exists() ? prodSnaps[i].data() : null;
+            const ings = Array.isArray(rec?.ingredients) ? rec.ingredients : [];
+            if (ings.length) {
+              ings.forEach((ing) =>
+                pushDed(
+                  ing.fromShopId || shopId,
+                  ing.productId,
+                  Number(ing.qty || 0) * it.qty,
+                ),
+              );
+            } else if (prd?.trackStock !== false) {
+              pushDed(shopId, it.productId, it.qty);
+            }
+          });
+          const invArr = [...deductions.values()];
+          const invSnaps = await Promise.all(
+            invArr.map((d) =>
+              tx.get(doc(db, C.inventory, invDocId(d.shopId, d.productId))),
+            ),
+          );
+
+          invSnaps.forEach((snap, i) => {
+            const d = invArr[i];
+            const have = snap.exists() ? Number(snap.data().qty || 0) : 0;
+            const track = snap.exists()
+              ? snap.data().trackStock !== false
+              : true;
+            if (track && have < d.qty) {
+              const p = items.find((x) => x.productId === d.productId);
+              throw new Error(
+                `สต๊อกไม่พอ: ${p?.name || d.productId} (เหลือ ${have}, ใช้ ${d.qty})`,
+              );
+            }
+          });
+
+          const memberData = memberSnap.data();
+          const pts = { ...emptyPoints(), ...(memberData.points || {}) };
+          const before = Number(pts[shopId] || 0);
+          // ★ คิดแต้มแบบใหม่ — ส่ง items เข้าไปด้วย
+          const earned = calcEarned(shopId, total, items);
+          const threshold = redeemThreshold(shopId);
+          const willRedeem = !!state.redeem;
+          if (willRedeem && before < threshold) throw new Error("คะแนนไม่พอ");
+          const after = before - (willRedeem ? threshold : 0) + earned;
+          pts[shopId] = after;
+
+          const spent = { ...emptyPoints(), ...(memberData.totalSpent || {}) };
+          spent[shopId] = Number(spent[shopId] || 0) + total;
+
+          const seq = (cSnap.exists() ? Number(cSnap.data().seq || 0) : 0) + 1;
+          const billNo = `${SHOPS[shopId].prefix}-${dateKey().replace(/-/g, "")}-${String(seq).padStart(4, "0")}`;
+          const grossCost = items.reduce((s, it) => s + it.cost * it.qty, 0);
+          const gpAmount = (total * gpPct) / 100;
+
+          // WRITES
+          tx.set(cRef, { seq, updatedAt: serverTimestamp() }, { merge: true });
+
+          tx.set(saleRef, {
+            billNo,
+            shopId,
+            shiftId: state.shift.id,
+            clientToken: token,
+            memberId: memberRef.id,
+            memberPhoneMasked: memberData.phoneMasked || "",
+            memberNickname: memberData.nickname || "",
+            memberDisplayName: memberData.displayName || "",
+            itemsCount: items.reduce((s, it) => s + it.qty, 0),
+            subtotal,
+            discount,
+            total,
+            grossCost,
+            gpPct,
+            gpAmount,
+            payments: payments.map((p) => ({
+              method: p.method,
+              amount: Number(p.amount),
+            })),
+            paymentSummary: payments.map((p) => p.method).join("+"),
+            cashReceived: payments
+              .filter((p) => p.method === "cash")
+              .reduce((s, p) => s + Number(p.amount), 0),
+            transferReceived: payments
+              .filter((p) => p.method === "transfer")
+              .reduce((s, p) => s + Number(p.amount), 0),
+            change: Number(state.change || 0),
+            status: "completed",
+            pointsEarned: earned,
+            pointsRedeemed: willRedeem ? threshold : 0,
+            pointsAfter: after,
+            note: note || "",
+            createdAt: serverTimestamp(),
+            dateKey: dateKey(),
+          });
+
+          items.forEach((it, i) => {
+            tx.set(doc(collection(db, C.sales, token, C.saleItems)), {
+              ...it,
+              lineIndex: i,
+              createdAt: serverTimestamp(),
+            });
+          });
+
+          invSnaps.forEach((snap, i) => {
+            const d = invArr[i];
+            const have = snap.exists() ? Number(snap.data().qty || 0) : 0;
+            const afterQty = have - d.qty;
+            tx.set(
+              doc(db, C.inventory, invDocId(d.shopId, d.productId)),
+              {
+                shopId: d.shopId,
+                productId: d.productId,
+                qty: afterQty,
+                updatedAt: serverTimestamp(),
+              },
+              { merge: true },
+            );
+            tx.set(doc(collection(db, C.inventoryMovements)), {
+              shopId: d.shopId,
+              productId: d.productId,
+              type: "sale_deduct",
+              qty: -d.qty,
+              qtyBefore: have,
+              qtyAfter: afterQty,
+              refType: "sale",
+              refId: token,
+              billNo,
+              reason: `ขายบิล ${billNo}`,
+              createdAt: serverTimestamp(),
+              dateKey: dateKey(),
+            });
+          });
+
+          tx.update(memberRef, {
+            points: pts,
+            totalSpent: spent,
+            lastVisitAt: serverTimestamp(),
+          });
+
+          if (earned > 0) {
+            tx.set(doc(collection(db, C.pointTransactions)), {
+              memberId: memberRef.id,
+              shopId,
+              delta: earned,
+              balanceBefore: before - (willRedeem ? threshold : 0),
+              balanceAfter: after,
+              type: "earn",
+              reason: `สะสมจากบิล ${billNo}`,
+              refType: "sale",
+              refId: token,
+              billNo,
+              createdAt: serverTimestamp(),
+              dateKey: dateKey(),
+            });
+          }
+          if (willRedeem) {
+            tx.set(doc(collection(db, C.pointTransactions)), {
+              memberId: memberRef.id,
+              shopId,
+              delta: -threshold,
+              balanceBefore: before,
+              balanceAfter: before - threshold + earned,
+              type: "redeem",
+              reason: `แลกรางวัลในบิล ${billNo}`,
+              refType: "sale",
+              refId: token,
+              billNo,
+              createdAt: serverTimestamp(),
+              dateKey: dateKey(),
+            });
+          }
+
+          const cash = payments
+            .filter((p) => p.method === "cash")
+            .reduce((s, p) => s + Number(p.amount), 0);
+          const tr = payments
+            .filter((p) => p.method === "transfer")
+            .reduce((s, p) => s + Number(p.amount), 0);
+          const sd = shSnap.exists() ? shSnap.data() : {};
+          tx.update(shiftRef, {
+            cashSales: Number(sd.cashSales || 0) + cash,
+            transferSales: Number(sd.transferSales || 0) + tr,
+            salesTotal: Number(sd.salesTotal || 0) + total,
+            billCount: Number(sd.billCount || 0) + 1,
+          });
+
+          return billNo;
+        });
+
+        await audit("sale.create", { saleId: token, billNo, shopId, total });
+        state.clientToken = null;
+        // ★ คิดแต้มแบบใหม่หลัง commit (ใช้ items array)
+        const earned = calcEarned(shopId, total, items);
+        return {
+          saleId: token,
+          billNo,
+          total,
+          earned,
+          member: state.member,
+          redeem: state.redeem,
+        };
+      }
+
+      async function showDoneModal({
+        billNo,
+        total,
+        member,
+        earned,
+        redeem,
+        change,
+        payments,
+        saleId,
+      }) {
+        const snap = await getDocs(
+          collection(db, C.sales, saleId, C.saleItems),
+        );
+        const items = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => a.lineIndex - b.lineIndex);
+        const m = el(`<div class="modal"><div class="modal-box">
+    <h3 style="color:var(--green)">✓ บันทึกการขายสำเร็จ</h3>
+    <div class="stat" style="margin-bottom:.6rem">
+      <div class="lbl">เลขที่บิล</div><div class="val">${esc(billNo)}</div>
+    </div>
+    <div class="stat" style="margin-bottom:.6rem">
+      <div class="lbl">ยอดสุทธิ</div><div class="val">฿${fmtTHB(total)}</div>
+    </div>
+    ${change > 0 ? `<div class="change-box"><span>เงินทอน</span><b>฿${fmtTHB(change)}</b></div>` : ""}
+    <div class="stat" style="margin:.6rem 0">
+      <div class="lbl">สมาชิก</div>
+      <div class="val sm">${esc(member.displayName || "")}</div>
+      <div class="muted" style="font-size:.8rem">ได้ ${earned} แต้ม${redeem ? ` • แลกรางวัล −${redeemThreshold(state.shopId)}` : ""}</div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-a="print">🖨️ พิมพ์ใบเสร็จ</button>
+      <button type="button" class="btn btn-primary" data-a="close">เสร็จสิ้น</button>
+    </div></div></div>`);
+        document.body.appendChild(m);
+        m.addEventListener("click", (e) => {
+          const a = e.target.dataset?.a;
+          if (a === "close" || e.target === m) {
+            m.remove();
+            return;
+          }
+          if (a === "print")
+            printReceipt({
+              billNo,
+              total,
+              member,
+              earned,
+              redeem,
+              change,
+              payments,
+              items,
+            });
+        });
+      }
+      function printReceipt({
+        billNo,
+        total,
+        member,
+        earned,
+        redeem,
+        change,
+        payments,
+        items,
+      }) {
+        const { subtotal, discount } = calcTotals();
+        const psum = payments
+          .map(
+            (p) =>
+              `${p.method === "cash" ? "เงินสด" : "เงินโอน"} ${fmtTHB(p.amount)}`,
+          )
+          .join(" / ");
+        $("receiptArea").innerHTML = `
+    <div class="receipt">
+      <h2>Kool Bar (อาจารย์)</h2>
+      <div class="center">${esc(shopName(state.shopId))}</div>
+      <hr>
+      <div>บิล: ${esc(billNo)}</div>
+      <div>วันที่: ${new Date().toLocaleString("th-TH")}</div>
+      <div>สมาชิก: ${esc(member.displayName || "")} (${esc(member.phoneMasked || "")})</div>
+      <hr>
+      <table><thead><tr><th>รายการ</th><th class="r">จำนวน</th><th class="r">รวม</th></tr></thead>
+        <tbody>${items.map((it) => `<tr><td>${esc(it.name)}</td><td class="r">${it.qty}</td><td class="r">${fmtTHB(it.lineTotal)}</td></tr>`).join("")}</tbody>
+      </table>
+      <hr>
+      <div class="r">รวม ${fmtTHB(subtotal)}</div>
+      ${discount ? `<div class="r">ส่วนลด −${fmtTHB(discount)}</div>` : ""}
+      <div class="r"><b>สุทธิ ${fmtTHB(total)}</b></div>
+      <div class="r">${esc(psum)}</div>
+      ${change > 0 ? `<div class="r">เงินทอน ${fmtTHB(change)}</div>` : ""}
+      <hr>
+      <div>แต้ม: +${earned}${redeem ? ` / แลก −${redeemThreshold(state.shopId)}` : ""}</div>
+      <div class="center" style="margin-top:6px">ขอบคุณที่ใช้บริการ</div>
+    </div>`;
+        $("receiptArea").style.display = "block";
+        setTimeout(() => {
+          window.print();
+          setTimeout(() => {
+            $("receiptArea").style.display = "none";
+          }, 400);
+        }, 60);
+      }
+
+      /* ---------- PRODUCTS ---------- */
+      async function renderProducts() {
+        const snap = await getDocs(collection(db, C.products));
+        const list = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .sort(
+            (a, b) =>
+              (a.shopId || "").localeCompare(b.shopId || "") ||
+              (a.name || "").localeCompare(b.name || "", "th"),
+          );
+
+        $("view").innerHTML = `
+    <div class="card">
+      <div class="row">
+        <input id="pSearch" placeholder="🔍 ค้นหาชื่อ/รหัส">
+        <select id="pShop" style="max-width:200px">
+          <option value="">ทุกร้าน</option>
+          ${SHOP_IDS.map((s) => `<option value="${s}">${esc(SHOPS[s].name)}</option>`).join("")}
+        </select>
+        <button type="button" id="btnAddProd" class="btn btn-primary" style="flex:0 0 auto">+ เพิ่มสินค้า</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="table-wrap"><table>
+        <thead><tr><th>รหัส</th><th>ชื่อ</th><th>ร้าน</th><th>หมวด</th>
+          <th style="text-align:right">ราคา</th><th style="text-align:right">ต้นทุน</th>
+          <th style="text-align:right">กำไร</th><th>สถานะ</th><th></th></tr></thead>
+        <tbody id="prodBody"></tbody>
+      </table></div>
+    </div>`;
+
+        const draw = () => {
+          const kw = $("pSearch").value.trim().toLowerCase();
+          const shop = $("pShop").value;
+          const rows = list.filter(
+            (p) =>
+              (!shop || p.shopId === shop) &&
+              (!kw ||
+                (p.name || "").toLowerCase().includes(kw) ||
+                (p.sku || "").toLowerCase().includes(kw)),
+          );
+          $("prodBody").innerHTML = rows.length
+            ? rows
+                .map((p) => {
+                  const profit = Number(p.price || 0) - Number(p.cost || 0);
+                  return `<tr>
+        <td>${esc(p.sku || "-")}</td>
+        <td><b>${esc(p.name)}</b></td>
+        <td>${esc(shopName(p.shopId))}</td>
+        <td>${esc(p.category || "-")}</td>
+        <td style="text-align:right">฿${fmtTHB(p.price)}</td>
+        <td style="text-align:right">฿${fmtTHB(p.cost)}</td>
+        <td style="text-align:right;color:${profit >= 0 ? "var(--green)" : "var(--red)"}">฿${fmtTHB(profit)}</td>
+        <td>${p.active === false ? `<span class="badge bad">ปิด</span>` : `<span class="badge ok">ใช้งาน</span>`}</td>
+        <td style="white-space:nowrap">
+          <button type="button" class="btn btn-ghost btn-sm" data-edit="${esc(p.id)}">แก้ไข</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-rec="${esc(p.id)}">สูตร</button>
+        </td>
+      </tr>`;
+                })
+                .join("")
+            : `<tr><td colspan="9" class="empty">ไม่พบสินค้า</td></tr>`;
+          $("prodBody")
+            .querySelectorAll("[data-edit]")
+            .forEach((b) =>
+              b.addEventListener("click", () =>
+                openProdForm(
+                  list.find((x) => x.id === b.dataset.edit),
+                  draw,
+                ),
+              ),
+            );
+          $("prodBody")
+            .querySelectorAll("[data-rec]")
+            .forEach((b) =>
+              b.addEventListener("click", () =>
+                openRecipe(list.find((x) => x.id === b.dataset.rec)),
+              ),
+            );
+        };
+        $("pSearch").addEventListener("input", draw);
+        $("pShop").addEventListener("change", draw);
+        $("btnAddProd").addEventListener("click", () =>
+          openProdForm(null, draw),
+        );
+        draw();
+      }
+
+      function openProdForm(p, onDone) {
+        const isEdit = !!p;
+        p = p || {
+          shopId: SHOP_IDS[0],
+          unit: "ชิ้น",
+          active: true,
+          trackStock: true,
+          price: 0,
+          cost: 0,
+        };
+        const m = el(`<div class="modal"><div class="modal-box">
+    <h3>${isEdit ? "แก้ไขสินค้า" : "เพิ่มสินค้า"}</h3>
+    <div class="grid g2">
+      <div>
+        <label>รหัสสินค้า</label><input id="fSku" value="${esc(p.sku || "")}">
+        <label>ชื่อสินค้า *</label><input id="fName" value="${esc(p.name || "")}">
+        <label>หมวดหมู่</label><input id="fCat" value="${esc(p.category || "")}">
+        <label>หน่วย</label><input id="fUnit" value="${esc(p.unit || "ชิ้น")}">
+      </div>
+      <div>
+        <label>ร้านย่อย</label>
+        <select id="fShop">${SHOP_IDS.map((s) => `<option value="${s}" ${p.shopId === s ? "selected" : ""}>${esc(SHOPS[s].name)}</option>`).join("")}</select>
+        <label>ราคาขาย</label><input id="fPrice" type="number" min="0" step="0.01" value="${Number(p.price || 0)}">
+        <label>ต้นทุน/หน่วย</label><input id="fCost" type="number" min="0" step="0.01" value="${Number(p.cost || 0)}">
+        <label>จุดสั่งซื้อขั้นต่ำ</label><input id="fMin" type="number" min="0" step="1" value="${Number(p.minQty || 0)}">
+        <label style="display:flex;gap:.5rem;align-items:center;color:var(--fg)">
+          <input id="fActive" type="checkbox" style="width:auto" ${p.active !== false ? "checked" : ""}>
+          <span>เปิดใช้งาน</span>
+        </label>
+      </div>
+    </div>
+    <div class="msg"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-a="cancel">ยกเลิก</button>
+      <button type="button" class="btn btn-primary" data-a="ok">${isEdit ? "บันทึก" : "เพิ่ม"}</button>
+    </div></div></div>`);
+        document.body.appendChild(m);
+        const err = m.querySelector(".msg");
+        m.addEventListener("click", async (e) => {
+          const a = e.target.dataset?.a;
+          if (a === "cancel" || e.target === m) {
+            m.remove();
+            return;
+          }
+          if (a !== "ok") return;
+          const data = {
+            sku: m.querySelector("#fSku").value.trim(),
+            name: m.querySelector("#fName").value.trim(),
+            category: m.querySelector("#fCat").value.trim(),
+            unit: m.querySelector("#fUnit").value.trim() || "ชิ้น",
+            shopId: m.querySelector("#fShop").value,
+            price: Number(m.querySelector("#fPrice").value) || 0,
+            cost: Number(m.querySelector("#fCost").value) || 0,
+            minQty: Number(m.querySelector("#fMin").value) || 0,
+            active: m.querySelector("#fActive").checked,
+            trackStock: true,
+            updatedAt: serverTimestamp(),
+          };
+          if (!data.name) {
+            setMsg(err, "ต้องระบุชื่อสินค้า", "err");
+            return;
+          }
+          e.target.disabled = true;
+          try {
+            if (isEdit) await updateDoc(doc(db, C.products, p.id), data);
+            else
+              await addDoc(collection(db, C.products), {
+                ...data,
+                createdAt: serverTimestamp(),
+              });
+            await audit(isEdit ? "product.update" : "product.create", {
+              name: data.name,
+            });
+            toast("บันทึกสินค้าแล้ว", "ok");
+            m.remove();
+            onDone && onDone();
+          } catch (e2) {
+            setMsg(err, e2.message, "err");
+            e.target.disabled = false;
+          }
+        });
+      }
+
+      async function openRecipe(p) {
+        const snap = await getDocs(
+          query(
+            collection(db, C.products),
+            where("shopId", "==", p.shopId),
+            limit(500),
+          ),
+        );
+        const all = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .filter((x) => x.id !== p.id);
+        const rSnap = await getDoc(doc(db, C.recipes, p.id));
+        const recipe = rSnap.exists() ? rSnap.data() : { ingredients: [] };
+        let rows = (recipe.ingredients || []).map((i) => ({ ...i }));
+
+        const m = el(`<div class="modal"><div class="modal-box wide">
+    <h3>สูตร — ${esc(p.name)}</h3>
+    <p class="hint">ขาย 1 หน่วย ตัดวัตถุดิบตามที่ระบุ (ทำในธุรกรรมเดียวกับบิล)</p>
+    <div id="rRows"></div>
+    <button type="button" class="btn btn-ghost btn-sm" id="rAdd">+ เพิ่มวัตถุดิบ</button>
+    <div class="msg"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-a="cancel">ยกเลิก</button>
+      <button type="button" class="btn btn-primary" data-a="ok">บันทึกสูตร</button>
+    </div></div></div>`);
+        document.body.appendChild(m);
+
+        const draw = () => {
+          m.querySelector("#rRows").innerHTML =
+            rows
+              .map(
+                (r, i) => `
+      <div class="row" style="margin-bottom:.4rem">
+        <select data-i="${i}" data-k="productId" style="flex:2">
+          <option value="">— เลือก —</option>
+          ${all.map((x) => `<option value="${x.id}" ${r.productId === x.id ? "selected" : ""}>${esc(x.name)} (${esc(x.unit || "")})</option>`).join("")}
+        </select>
+        <input data-i="${i}" data-k="qty" type="number" min="0" step="0.01" value="${Number(r.qty || 0)}" style="flex:1" placeholder="จำนวน">
+        <button type="button" class="btn btn-ghost btn-sm" data-del="${i}" style="flex:0 0 auto">✕</button>
+      </div>`,
+              )
+              .join("") || `<div class="empty">ยังไม่มีส่วนผสม</div>`;
+        };
+        draw();
+
+        m.addEventListener("input", (e) => {
+          const i = e.target.dataset?.i,
+            k = e.target.dataset?.k;
+          if (i === undefined) return;
+          if (k === "qty") rows[Number(i)].qty = Number(e.target.value);
+          if (k === "productId") rows[Number(i)].productId = e.target.value;
+        });
+        m.addEventListener("click", async (e) => {
+          const a = e.target.dataset?.a,
+            del = e.target.dataset?.del;
+          if (del !== undefined) {
+            rows.splice(Number(del), 1);
+            draw();
+            return;
+          }
+          if (a === "cancel" || e.target === m) {
+            m.remove();
+            return;
+          }
+          if (a !== "ok") return;
+          const clean = rows
+            .filter((i) => i.productId && Number(i.qty) > 0)
+            .map((i) => ({
+              productId: i.productId,
+              qty: Number(i.qty),
+              fromShopId: p.shopId,
+            }));
+          try {
+            await setDoc(
+              doc(db, C.recipes, p.id),
+              {
+                productId: p.id,
+                shopId: p.shopId,
+                ingredients: clean,
+                updatedAt: serverTimestamp(),
+              },
+              { merge: true },
+            );
+            await audit("recipe.save", {
+              productId: p.id,
+              count: clean.length,
+            });
+            toast("บันทึกสูตรแล้ว", "ok");
+            m.remove();
+          } catch (e2) {
+            setMsg(m.querySelector(".msg"), e2.message, "err");
+          }
+        });
+        m.querySelector("#rAdd").addEventListener("click", () => {
+          rows.push({ productId: "", qty: 1 });
+          draw();
+        });
+      }
+
+      /* ---------- INVENTORY ---------- */
+      async function renderInventory() {
+        const [invSnap, prodSnap] = await Promise.all([
+          getDocs(collection(db, C.inventory)),
+          getDocs(collection(db, C.products)),
+        ]);
+        const inv = invSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const products = prodSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const pm = new Map(products.map((p) => [p.id, p]));
+
+        $("view").innerHTML = `
+    <div class="card">
+      <div class="row">
+        <button type="button" id="btnRecv" class="btn btn-primary">+ รับสินค้าเข้า</button>
+        <button type="button" id="btnAdjust" class="btn">ปรับปรุง</button>
+        <button type="button" id="btnTransfer" class="btn">โอนย้าย</button>
+        <button type="button" id="btnMove" class="btn btn-ghost">ประวัติเคลื่อนไหว</button>
+      </div>
+    </div>
+    ${SHOP_IDS.map((sid) => {
+      const rows = inv.filter((r) => r.shopId === sid);
+      return `<div class="card">
+        <h3>${esc(SHOPS[sid].name)}</h3>
+        ${
+          rows.length
+            ? `<div class="table-wrap"><table>
+          <thead><tr><th>สินค้า</th><th>หน่วย</th><th style="text-align:right">คงเหลือ</th>
+            <th style="text-align:right">จุดสั่งซื้อ</th><th style="text-align:right">มูลค่า</th><th></th></tr></thead>
+          <tbody>${rows
+            .map((r) => {
+              const p = pm.get(r.productId) || {};
+              const qty = Number(r.qty || 0);
+              const min = Number(r.minQty ?? p.minQty ?? 0);
+              const low = min > 0 && qty <= min;
+              return `<tr>
+              <td>${esc(p.name || r.productName || r.productId)}</td>
+              <td>${esc(p.unit || "")}</td>
+              <td style="text-align:right;color:${low ? "var(--yellow)" : "inherit"};font-weight:${low ? 700 : 400}">${fmtNum(qty, 2)}</td>
+              <td style="text-align:right">${min}</td>
+              <td style="text-align:right">฿${fmtTHB(qty * Number(p.cost || 0))}</td>
+              <td>${low ? `<span class="badge warn">ใกล้หมด</span>` : ""}</td>
+            </tr>`;
+            })
+            .join("")}</tbody>
+        </table></div>`
+            : `<div class="empty">ยังไม่มีสต๊อก</div>`
+        }
+      </div>`;
+    }).join("")}`;
+
+        $("btnRecv").addEventListener("click", () =>
+          openStockModal("receive", products),
+        );
+        $("btnAdjust").addEventListener("click", () =>
+          openStockModal("adjust", products),
+        );
+        $("btnTransfer").addEventListener("click", () =>
+          openStockModal("transfer", products),
+        );
+        $("btnMove").addEventListener("click", showMovements);
+      }
+
+      function openStockModal(mode, products) {
+        const titles = {
+          receive: "รับสินค้าเข้า (+)",
+          adjust: "ปรับปรุงสต๊อก (+/−)",
+          transfer: "โอนย้ายระหว่างร้าน",
+        };
+        const isTr = mode === "transfer";
+        const m = el(`<div class="modal"><div class="modal-box">
+    <h3>${titles[mode]}</h3>
+    <label>ร้าน${isTr ? "ต้นทาง" : ""}</label>
+    <select id="smShop">${SHOP_IDS.map((s) => `<option value="${s}">${esc(SHOPS[s].name)}</option>`).join("")}</select>
+    ${
+      isTr
+        ? `<label>ร้านปลายทาง</label>
+      <select id="smTo">${SHOP_IDS.map((s) => `<option value="${s}">${esc(SHOPS[s].name)}</option>`).join("")}</select>`
+        : ""
+    }
+    <label>สินค้า</label>
+    <select id="smProd">${products.map((p) => `<option value="${p.id}">${esc(p.name)} — ${esc(shopName(p.shopId))}</option>`).join("")}</select>
+    <label>จำนวน</label>
+    <input id="smQty" type="number" min="0" step="0.01" value="0">
+    ${
+      mode === "adjust"
+        ? `<label>ทิศทาง</label>
+      <select id="smDir"><option value="add">เพิ่ม (+)</option><option value="deduct">ลด (−)</option></select>`
+        : ""
+    }
+    <label>เหตุผล *</label>
+    <input id="smReason" placeholder="เช่น ซื้อจากตลาด / ตรวจสต๊อก / ของเสีย">
+    <div class="msg"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-a="cancel">ยกเลิก</button>
+      <button type="button" class="btn btn-primary" data-a="ok">บันทึก</button>
+    </div></div></div>`);
+        document.body.appendChild(m);
+        const err = m.querySelector(".msg");
+        m.addEventListener("click", async (e) => {
+          const a = e.target.dataset?.a;
+          if (a === "cancel" || e.target === m) {
+            m.remove();
+            return;
+          }
+          if (a !== "ok") return;
+          e.target.disabled = true;
+          try {
+            const shopId = m.querySelector("#smShop").value;
+            const productId = m.querySelector("#smProd").value;
+            const qty = Number(m.querySelector("#smQty").value) || 0;
+            const reason = m.querySelector("#smReason").value.trim();
+            if (!productId) throw new Error("เลือกสินค้า");
+            if (!reason) throw new Error("ต้องระบุเหตุผล");
+            if (qty <= 0 && mode !== "adjust")
+              throw new Error("จำนวนต้องมากกว่า 0");
+
+            if (mode === "receive") {
+              await adjustStock(shopId, productId, qty, "receive", reason);
+            } else if (mode === "adjust") {
+              const dir = m.querySelector("#smDir").value;
+              const delta = dir === "add" ? qty : -qty;
+              await adjustStock(shopId, productId, delta, "adjust_add", reason);
+            } else if (mode === "transfer") {
+              const to = m.querySelector("#smTo").value;
+              if (to === shopId) throw new Error("ต้นทาง=ปลายทาง");
+              await transferStock(shopId, to, productId, qty, reason);
+            }
+            toast("บันทึกเรียบร้อย", "ok");
+            m.remove();
+            await renderInventory();
+          } catch (e2) {
+            setMsg(err, e2.message, "err");
+            e.target.disabled = false;
+          }
+        });
+      }
+
+      async function adjustStock(shopId, productId, delta, type, reason) {
+        const d = Number(delta);
+        if (!d) throw new Error("จำนวนต้องไม่เป็น 0");
+        const invRef = doc(db, C.inventory, invDocId(shopId, productId));
+        const prodRef = doc(db, C.products, productId);
+        await runTransaction(db, async (tx) => {
+          const inv = await tx.get(invRef);
+          const p = await tx.get(prodRef);
+          const before = inv.exists() ? Number(inv.data().qty || 0) : 0;
+          const after = before + d;
+          if (after < 0) throw new Error(`สต๊อกไม่พอ (เหลือ ${before})`);
+          const pdata = p.exists() ? p.data() : {};
+          tx.set(
+            invRef,
+            {
+              shopId,
+              productId,
+              productName: pdata.name || productId,
+              unit: pdata.unit || "ชิ้น",
+              minQty: Number(pdata.minQty || 0),
+              qty: after,
+              updatedAt: serverTimestamp(),
+            },
+            { merge: true },
+          );
+          tx.set(doc(collection(db, C.inventoryMovements)), {
+            shopId,
+            productId,
+            productName: pdata.name || productId,
+            type,
+            qty: d,
+            qtyBefore: before,
+            qtyAfter: after,
+            reason,
+            refType: "manual",
+            createdAt: serverTimestamp(),
+            dateKey: dateKey(),
+          });
+        });
+        await audit("stock.adjust", {
+          shopId,
+          productId,
+          delta: d,
+          type,
+          reason,
+        });
+      }
+
+      async function transferStock(from, to, productId, qty, reason) {
+        const q = Number(qty);
+        const fromRef = doc(db, C.inventory, invDocId(from, productId));
+        const toRef = doc(db, C.inventory, invDocId(to, productId));
+        const pRef = doc(db, C.products, productId);
+        await runTransaction(db, async (tx) => {
+          const f = await tx.get(fromRef);
+          const t = await tx.get(toRef);
+          const p = await tx.get(pRef);
+          const fB = f.exists() ? Number(f.data().qty || 0) : 0;
+          if (fB < q) throw new Error(`สต๊อกต้นทางไม่พอ (เหลือ ${fB})`);
+          const tB = t.exists() ? Number(t.data().qty || 0) : 0;
+          const name = p.exists() ? p.data().name : productId;
+          const unit = p.exists() ? p.data().unit || "ชิ้น" : "ชิ้น";
+          tx.set(
+            fromRef,
+            {
+              shopId: from,
+              productId,
+              productName: name,
+              unit,
+              qty: fB - q,
+              updatedAt: serverTimestamp(),
+            },
+            { merge: true },
+          );
+          tx.set(
+            toRef,
+            {
+              shopId: to,
+              productId,
+              productName: name,
+              unit,
+              qty: tB + q,
+              updatedAt: serverTimestamp(),
+            },
+            { merge: true },
+          );
+          const base = {
+            productId,
+            productName: name,
+            qty: q,
+            reason,
+            refType: "transfer",
+            createdAt: serverTimestamp(),
+            dateKey: dateKey(),
+          };
+          tx.set(doc(collection(db, C.inventoryMovements)), {
+            ...base,
+            shopId: from,
+            type: "transfer_out",
+            qty: -q,
+            qtyBefore: fB,
+            qtyAfter: fB - q,
+          });
+          tx.set(doc(collection(db, C.inventoryMovements)), {
+            ...base,
+            shopId: to,
+            type: "transfer_in",
+            qty: q,
+            qtyBefore: tB,
+            qtyAfter: tB + q,
+          });
+        });
+        await audit("stock.transfer", { from, to, productId, qty: q, reason });
+      }
+
+      async function showMovements() {
+        const snap = await getDocs(
+          query(
+            collection(db, C.inventoryMovements),
+            orderBy("createdAt", "desc"),
+            limit(80),
+          ),
+        );
+        const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        const m = el(`<div class="modal"><div class="modal-box wide">
+    <h3>ประวัติเคลื่อนไหวสต๊อก</h3>
+    <div class="table-wrap" style="max-height:60vh;overflow:auto">
+      <table><thead><tr><th>เวลา</th><th>ร้าน</th><th>สินค้า</th><th>ประเภท</th>
+        <th style="text-align:right">จำนวน</th><th style="text-align:right">ก่อน/หลัง</th></tr></thead>
+        <tbody>${
+          rows
+            .map(
+              (r) => `<tr>
+          <td>${fmtDT(r.createdAt)}</td>
+          <td>${esc(shopName(r.shopId))}</td>
+          <td>${esc(r.productName || r.productId)}</td>
+          <td>${esc(r.type)}</td>
+          <td style="text-align:right;color:${r.qty < 0 ? "var(--red)" : "var(--green)"}">${r.qty}</td>
+          <td style="text-align:right">${r.qtyBefore} → ${r.qtyAfter}</td>
+        </tr>`,
+            )
+            .join("") ||
+          `<tr><td colspan="6" class="empty">ไม่มีข้อมูล</td></tr>`
+        }</tbody>
+      </table>
+    </div>
+    <div class="modal-actions"><button type="button" class="btn btn-ghost" data-a="cancel">ปิด</button></div>
+  </div></div>`);
+        document.body.appendChild(m);
+        m.addEventListener("click", (e) => {
+          if (e.target.dataset?.a === "cancel" || e.target === m) m.remove();
+        });
+      }
+
+      /* ---------- MEMBERS ---------- */
+      async function renderMembers() {
+        $("view").innerHTML = `
+    <div class="card">
+      <div class="row">
+        <input id="mSearch" placeholder="เบอร์ (9-10 หลัก) หรือชื่อเล่น">
+        <button type="button" id="btnMSearch" class="btn btn-primary">ค้นหา</button>
+        <button type="button" id="btnMExport" class="btn btn-ghost">ส่งออก CSV</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="table-wrap"><table>
+        <thead><tr><th>ชื่อ</th><th>เบอร์</th><th>สมัครเมื่อ</th>
+          ${SHOP_IDS.map((s) => `<th style="text-align:center">${esc(SHOPS[s].name)}</th>`).join("")}
+          <th>สถานะ</th><th></th></tr></thead>
+        <tbody id="mBody"></tbody>
+      </table></div>
+    </div>`;
+
+        let rows = [];
+        const load = async () => {
+          const raw = $("mSearch").value.trim();
+          if (raw) {
+            if (/^\d{9,10}$/.test(normalizePhone(raw))) {
+              const id = await memberId(raw);
+              const s = await getDoc(doc(db, C.members, id));
+              rows = s.exists() ? [{ id: s.id, ...s.data() }] : [];
+            } else {
+              const snap = await getDocs(
+                query(collection(db, C.members), limit(500)),
+              );
+              const kw = raw.toLowerCase();
+              rows = snap.docs
+                .map((d) => ({ id: d.id, ...d.data() }))
+                .filter(
+                  (m) =>
+                    (m.nickname || "").toLowerCase().includes(kw) ||
+                    (m.displayName || "").toLowerCase().includes(kw),
+                );
+            }
+          } else {
+            const snap = await getDocs(
+              query(collection(db, C.members), limit(200)),
+            );
+            rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          }
+          draw();
+        };
+        const draw = () => {
+          $("mBody").innerHTML = rows.length
+            ? rows
+                .map(
+                  (m) => `
+      <tr>
+        <td><b>${esc(m.displayName || m.nickname || "")}</b></td>
+        <td>${esc(m.phoneMasked || "")}</td>
+        <td>${fmtD(m.createdAt)}</td>
+        ${SHOP_IDS.map((s) => `<td style="text-align:center;font-weight:700;color:var(--orange)">${Number(m.points?.[s] || 0)}</td>`).join("")}
+        <td>${m.status === "blocked" ? `<span class="badge bad">ระงับ</span>` : `<span class="badge ok">ใช้งาน</span>`}</td>
+        <td style="white-space:nowrap">
+          <button type="button" class="btn btn-ghost btn-sm" data-hist="${esc(m.id)}">ประวัติ</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-adj="${esc(m.id)}">ปรับแต้ม</button>
+        </td>
+      </tr>`,
+                )
+                .join("")
+            : `<tr><td colspan="7" class="empty">ไม่พบสมาชิก</td></tr>`;
+          $("mBody")
+            .querySelectorAll("[data-hist]")
+            .forEach((b) =>
+              b.addEventListener("click", () =>
+                showMemberHistory(rows.find((x) => x.id === b.dataset.hist)),
+              ),
+            );
+          $("mBody")
+            .querySelectorAll("[data-adj]")
+            .forEach((b) =>
+              b.addEventListener("click", () =>
+                openAdjust(
+                  rows.find((x) => x.id === b.dataset.adj),
+                  load,
+                ),
+              ),
+            );
+        };
+        $("btnMSearch").addEventListener("click", load);
+        $("mSearch").addEventListener("keydown", (e) => {
+          if (e.key === "Enter") load();
+        });
+        $("btnMExport").addEventListener("click", () => {
+          downloadCSV(
+            `members-${dateKey()}.csv`,
+            [
+              "ชื่อ",
+              "เบอร์(ปกปิด)",
+              "สมัครเมื่อ",
+              ...SHOP_IDS.map((s) => `แต้ม ${SHOPS[s].name}`),
+              "สถานะ",
+            ],
+            rows.map((m) => [
+              m.displayName || m.nickname || "",
+              m.phoneMasked || "",
+              fmtD(m.createdAt),
+              ...SHOP_IDS.map((s) => Number(m.points?.[s] || 0)),
+              m.status || "active",
+            ]),
+          );
+        });
+        await load();
+      }
+
+      async function showMemberHistory(m) {
+        const snap = await getDocs(
+          query(
+            collection(db, C.pointTransactions),
+            where("memberId", "==", m.id),
+            limit(200),
+          ),
+        );
+        const tx = snap.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .sort(
+            (a, b) =>
+              (toDate(b.createdAt)?.getTime() || 0) -
+              (toDate(a.createdAt)?.getTime() || 0),
+          )
+          .slice(0, 60);
+        const modal = el(`<div class="modal"><div class="modal-box wide">
+    <h3>ประวัติคะแนน — ${esc(m.displayName || "")}</h3>
+    <div class="table-wrap" style="max-height:60vh;overflow:auto">
+      <table><thead><tr><th>เวลา</th><th>ร้าน</th><th>ประเภท</th>
+        <th style="text-align:right">+/−</th><th style="text-align:right">คงเหลือ</th><th>เหตุผล</th></tr></thead>
+        <tbody>${
+          tx
+            .map(
+              (t) => `<tr>
+          <td>${fmtDT(t.createdAt)}</td>
+          <td>${esc(shopName(t.shopId))}</td>
+          <td>${esc(t.type)}</td>
+          <td style="text-align:right;color:${t.delta >= 0 ? "var(--green)" : "var(--red)"}">${t.delta > 0 ? "+" : ""}${t.delta}</td>
+          <td style="text-align:right">${t.balanceAfter}</td>
+          <td>${esc(t.reason || "")}</td>
+        </tr>`,
+            )
+            .join("") ||
+          `<tr><td colspan="6" class="empty">ไม่มีประวัติ</td></tr>`
+        }</tbody>
+      </table>
+    </div>
+    <div class="modal-actions"><button type="button" class="btn btn-ghost" data-a="cancel">ปิด</button></div>
+  </div></div>`);
+        document.body.appendChild(modal);
+        modal.addEventListener("click", (e) => {
+          if (e.target.dataset?.a === "cancel" || e.target === modal)
+            modal.remove();
+        });
+      }
+
+      function openAdjust(m, onDone) {
+        const modal = el(`<div class="modal"><div class="modal-box">
+    <h3>ปรับคะแนน — ${esc(m.displayName || "")}</h3>
+    <label>ร้าน</label>
+    <select id="adjShop">${SHOP_IDS.map((s) => `<option value="${s}">${esc(SHOPS[s].name)} (มี ${Number(m.points?.[s] || 0)})</option>`).join("")}</select>
+    <label>จำนวน (+ เพิ่ม, − หัก)</label>
+    <input id="adjDelta" type="number" step="1" value="1">
+    <label>เหตุผล *</label>
+    <input id="adjReason" placeholder="เช่น ชดเชย / ลูกค้าร้องเรียน">
+    <div class="msg"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-a="cancel">ยกเลิก</button>
+      <button type="button" class="btn btn-primary" data-a="ok">บันทึก</button>
+    </div></div></div>`);
+        document.body.appendChild(modal);
+        const err = modal.querySelector(".msg");
+        modal.addEventListener("click", async (e) => {
+          const a = e.target.dataset?.a;
+          if (a === "cancel" || e.target === modal) {
+            modal.remove();
+            return;
+          }
+          if (a !== "ok") return;
+          const shopId = modal.querySelector("#adjShop").value;
+          const delta = Number(modal.querySelector("#adjDelta").value) || 0;
+          const reason = modal.querySelector("#adjReason").value.trim();
+          if (!delta) {
+            setMsg(err, "จำนวนต้องไม่เป็น 0", "err");
+            return;
+          }
+          if (!reason) {
+            setMsg(err, "ต้องระบุเหตุผล", "err");
+            return;
+          }
+          e.target.disabled = true;
+          try {
+            const mRef = doc(db, C.members, m.id);
+            const txRef = doc(collection(db, C.pointTransactions));
+            let after = 0;
+            await runTransaction(db, async (tx) => {
+              const snap = await tx.get(mRef);
+              if (!snap.exists()) throw new Error("ไม่พบสมาชิก");
+              const pts = { ...emptyPoints(), ...(snap.data().points || {}) };
+              const before = Number(pts[shopId] || 0);
+              const next = before + delta;
+              if (next < 0) throw new Error(`คะแนนไม่พอ (มี ${before})`);
+              pts[shopId] = next;
+              tx.update(mRef, { points: pts, updatedAt: serverTimestamp() });
+              tx.set(txRef, {
+                memberId: m.id,
+                shopId,
+                delta,
+                balanceBefore: before,
+                balanceAfter: next,
+                type: delta > 0 ? "adjust_add" : "adjust_deduct",
+                reason,
+                refType: "manual",
+                refId: null,
+                createdAt: serverTimestamp(),
+                dateKey: dateKey(),
+              });
+              after = next;
+            });
+            await audit("points.adjust", {
+              memberId: m.id,
+              shopId,
+              delta,
+              reason,
+            });
+            modal.remove();
+            toast(`ปรับแล้ว — คงเหลือ ${after} แต้ม`, "ok");
+            onDone && onDone();
+          } catch (e2) {
+            setMsg(err, e2.message, "err");
+            e.target.disabled = false;
+          }
+        });
+      }
+
+      /* ---------- EXPENSES ---------- */
+      async function renderExpenses() {
+        const today = dateKey();
+        $("view").innerHTML = `
+    <div class="card">
+      <div class="row">
+        <button type="button" id="btnAddExp" class="btn btn-primary" style="flex:0 0 auto">+ บันทึกรายจ่าย</button>
+        <select id="expShop" style="max-width:220px">
+          <option value="">ทุกร้าน</option>
+          ${SHOP_IDS.map((s) => `<option value="${s}">${esc(SHOPS[s].name)}</option>`).join("")}
+          <option value="central">ส่วนกลาง</option>
+        </select>
+        <input id="expFrom" type="date" value="${today}">
+        <input id="expTo" type="date" value="${today}">
+        <button type="button" id="btnExpSearch" class="btn" style="flex:0 0 auto">ค้นหา</button>
+        <button type="button" id="btnExpExport" class="btn btn-ghost" style="flex:0 0 auto">CSV</button>
+      </div>
+    </div>
+    <div id="expSummary"></div>
+    <div class="card"><div class="table-wrap"><table>
+      <thead><tr><th>วันที่</th><th>ร้าน</th><th>หมวด</th><th>รายละเอียด</th>
+        <th style="text-align:right">จำนวน</th><th>วิธีชำระ</th></tr></thead>
+      <tbody id="expBody"></tbody>
+    </table></div></div>`;
+
+        let list = [];
+        const load = async () => {
+          const shopId = $("expShop").value || null;
+          const from = sod(new Date($("expFrom").value + "T00:00:00"));
+          const to = eod(new Date($("expTo").value + "T00:00:00"));
+          const snap = await getDocs(
+            query(
+              collection(db, C.expenses),
+              where("date", ">=", from),
+              where("date", "<=", to),
+              limit(300),
+            ),
+          );
+          list = snap.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .filter((e) => !shopId || e.shopId === shopId)
+            .sort(
+              (a, b) =>
+                (toDate(b.date)?.getTime() || 0) -
+                (toDate(a.date)?.getTime() || 0),
+            );
+          const total = list.reduce((a, e) => a + Number(e.amount || 0), 0);
+          $("expSummary").innerHTML = `
+      <div class="grid g3" style="margin-bottom:1rem">
+        <div class="stat"><div class="lbl">จำนวนรายการ</div><div class="val">${list.length}</div></div>
+        <div class="stat"><div class="lbl">รวมทั้งสิ้น</div><div class="val">฿${fmtTHB(total)}</div></div>
+        <div class="stat"><div class="lbl">เฉลี่ย</div><div class="val sm">฿${list.length ? fmtTHB(total / list.length) : "0.00"}</div></div>
+      </div>`;
+          $("expBody").innerHTML = list.length
+            ? list
+                .map(
+                  (e) => `
+      <tr>
+        <td>${fmtD(e.date)}</td>
+        <td>${esc(e.shopId === "central" ? "ส่วนกลาง" : shopName(e.shopId))}</td>
+        <td>${esc(e.category || "")}</td>
+        <td>${esc(e.detail || "")}</td>
+        <td style="text-align:right">฿${fmtTHB(e.amount)}</td>
+        <td>${esc(e.method === "cash" ? "เงินสด" : "เงินโอน")}</td>
+      </tr>`,
+                )
+                .join("")
+            : `<tr><td colspan="6" class="empty">ไม่มีรายการ</td></tr>`;
+        };
+        $("btnExpSearch").addEventListener("click", load);
+        $("btnExpExport").addEventListener("click", () => {
+          downloadCSV(
+            `expenses-${dateKey()}.csv`,
+            ["วันที่", "ร้าน", "หมวด", "รายละเอียด", "จำนวน", "วิธีชำระ"],
+            list.map((e) => [
+              fmtD(e.date),
+              e.shopId === "central" ? "ส่วนกลาง" : shopName(e.shopId),
+              e.category || "",
+              e.detail || "",
+              Number(e.amount || 0).toFixed(2),
+              e.method === "cash" ? "เงินสด" : "เงินโอน",
+            ]),
+          );
+        });
+        $("btnAddExp").addEventListener("click", () => openAddExpense(load));
+        await load();
+      }
+
+      function openAddExpense(onDone) {
+        const m = el(`<div class="modal"><div class="modal-box">
+    <h3>บันทึกรายจ่าย</h3>
+    <label>ร้าน</label>
+    <select id="aeShop">
+      ${SHOP_IDS.map((s) => `<option value="${s}">${esc(SHOPS[s].name)}</option>`).join("")}
+      <option value="central">ส่วนกลาง</option>
+    </select>
+    <label>หมวดหมู่</label>
+    <input id="aeCat" placeholder="เช่น ค่าวัตถุดิบ / ค่าน้ำ / ค่าเช่า">
+    <label>รายละเอียด *</label>
+    <input id="aeDetail" placeholder="เช่น ซื้อหมู 5 กก.">
+    <label>จำนวนเงิน *</label>
+    <input id="aeAmount" type="number" min="0" step="0.01" value="0">
+    <label>วิธีชำระ</label>
+    <select id="aeMethod"><option value="cash">เงินสด</option><option value="transfer">เงินโอน</option></select>
+    <label>หมายเหตุ</label>
+    <input id="aeNote">
+    <div class="msg"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-a="cancel">ยกเลิก</button>
+      <button type="button" class="btn btn-primary" data-a="ok">บันทึก</button>
+    </div></div></div>`);
+        document.body.appendChild(m);
+        const err = m.querySelector(".msg");
+        m.addEventListener("click", async (e) => {
+          const a = e.target.dataset?.a;
+          if (a === "cancel" || e.target === m) {
+            m.remove();
+            return;
+          }
+          if (a !== "ok") return;
+          const detail = m.querySelector("#aeDetail").value.trim();
+          const amount = Number(m.querySelector("#aeAmount").value) || 0;
+          if (!detail) {
+            setMsg(err, "ระบุรายละเอียด", "err");
+            return;
+          }
+          if (amount <= 0) {
+            setMsg(err, "จำนวนต้องมากกว่า 0", "err");
+            return;
+          }
+          e.target.disabled = true;
+          try {
+            await addDoc(collection(db, C.expenses), {
+              shopId: m.querySelector("#aeShop").value,
+              category: m.querySelector("#aeCat").value.trim() || "ทั่วไป",
+              detail,
+              amount,
+              method: m.querySelector("#aeMethod").value,
+              note: m.querySelector("#aeNote").value.trim(),
+              date: Timestamp.fromDate(new Date()),
+              createdAt: serverTimestamp(),
+            });
+            await audit("expense.add", { detail, amount });
+            toast("บันทึกรายจ่ายแล้ว", "ok");
+            m.remove();
+            onDone && onDone();
+          } catch (e2) {
+            setMsg(err, e2.message, "err");
+            e.target.disabled = false;
+          }
+        });
+      }
+
+      /* ---------- REPORTS ---------- */
+      async function renderReports() {
+        const today = dateKey();
+        $("view").innerHTML = `
+    <div class="card">
+      <div class="row">
+        <input id="rpFrom" type="date" value="${today}">
+        <input id="rpTo" type="date" value="${today}">
+        <select id="rpShop" style="max-width:200px">
+          <option value="">ทุกร้าน</option>
+          ${SHOP_IDS.map((s) => `<option value="${s}">${esc(SHOPS[s].name)}</option>`).join("")}
+        </select>
+        <button type="button" id="btnRunRp" class="btn btn-primary" style="flex:0 0 auto">ออกรายงาน</button>
+        <button type="button" id="btnExpSales" class="btn btn-ghost" style="flex:0 0 auto">CSV ยอดขาย</button>
+      </div>
+    </div>
+    <div id="rpBody"></div>`;
+
+        let lastSales = [];
+        const run = async () => {
+          const from = sod(new Date($("rpFrom").value + "T00:00:00"));
+          const to = eod(new Date($("rpTo").value + "T00:00:00"));
+          const shopId = $("rpShop").value || null;
+
+          const salesSnap = await getDocs(
+            query(
+              collection(db, C.sales),
+              where("createdAt", ">=", from),
+              where("createdAt", "<=", to),
+              limit(2000),
+            ),
+          );
+          let sales = salesSnap.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .sort(
+              (a, b) =>
+                (toDate(b.createdAt)?.getTime() || 0) -
+                (toDate(a.createdAt)?.getTime() || 0),
+            );
+          if (shopId) sales = sales.filter((s) => s.shopId === shopId);
+          lastSales = sales;
+
+          const expSnap = await getDocs(
+            query(
+              collection(db, C.expenses),
+              where("date", ">=", from),
+              where("date", "<=", to),
+              limit(1000),
+            ),
+          );
+          let expenses = expSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          if (shopId) expenses = expenses.filter((e) => e.shopId === shopId);
+
+          const byShop = Object.fromEntries(
+            SHOP_IDS.map((sid) => [
+              sid,
+              {
+                total: 0,
+                cost: 0,
+                cash: 0,
+                transfer: 0,
+                count: 0,
+                gpPct: getGpPct(sid),
+                gp: 0,
+                grossProfit: 0,
+                netAfterGp: 0,
+              },
+            ]),
+          );
+          let grandTotal = 0,
+            grandCost = 0,
+            grandCash = 0,
+            grandTransfer = 0,
+            grandGp = 0;
+
+          for (const s of sales) {
+            if (s.status !== "completed") continue;
+            const sid = s.shopId;
+            if (!byShop[sid]) continue;
+            const t = Number(s.total || 0);
+            const c = Number(s.grossCost || 0);
+            byShop[sid].total += t;
+            byShop[sid].cost += c;
+            byShop[sid].count += 1;
+            for (const p of s.payments || []) {
+              if (p.method === "cash")
+                byShop[sid].cash += Number(p.amount || 0);
+              if (p.method === "transfer")
+                byShop[sid].transfer += Number(p.amount || 0);
+            }
+            grandTotal += t;
+            grandCost += c;
+          }
+          for (const sid of SHOP_IDS) {
+            const bs = byShop[sid];
+            bs.grossProfit = bs.total - bs.cost;
+            bs.gp = (bs.total * bs.gpPct) / 100;
+            bs.netAfterGp = bs.grossProfit - bs.gp;
+            grandGp += bs.gp;
+            grandCash += bs.cash;
+            grandTransfer += bs.transfer;
+          }
+
+          const expTotal = expenses.reduce(
+            (a, e) => a + Number(e.amount || 0),
+            0,
+          );
+          const profit = grandTotal - grandCost - expTotal - grandGp;
+
+          const topMap = new Map();
+          for (const s of sales) {
+            if (s.status !== "completed") continue;
+            try {
+              const itemsSnap = await getDocs(
+                collection(db, C.sales, s.id, C.saleItems),
+              );
+              for (const dd of itemsSnap.docs) {
+                const it = dd.data();
+                const cur = topMap.get(it.productId) || {
+                  name: it.name,
+                  qty: 0,
+                  revenue: 0,
+                };
+                cur.qty += Number(it.qty || 0);
+                cur.revenue += Number(it.lineTotal || 0);
+                topMap.set(it.productId, cur);
+              }
+            } catch (e) {}
+          }
+          const top = [...topMap.values()]
+            .sort((a, b) => b.revenue - a.revenue)
+            .slice(0, 15);
+
+          $("rpBody").innerHTML = `
+      <div class="grid g4">
+        <div class="stat"><div class="lbl">ยอดขายสุทธิ</div><div class="val">฿${fmtTHB(grandTotal)}</div>
+          <div class="muted" style="font-size:.75rem">${sales.filter((s) => s.status === "completed").length} บิล</div></div>
+        <div class="stat"><div class="lbl">ต้นทุนขาย</div><div class="val sm">฿${fmtTHB(grandCost)}</div></div>
+        <div class="stat"><div class="lbl">กำไรขั้นต้น</div>
+          <div class="val sm" style="color:var(--green)">฿${fmtTHB(grandTotal - grandCost)}</div></div>
+        <div class="stat"><div class="lbl">GP รวม</div><div class="val sm">฿${fmtTHB(grandGp)}</div></div>
+      </div>
+
+      <div class="card" style="margin-top:1rem">
+        <h4>💼 GP แยกร้าน</h4>
+        <div class="grid g2">
+          ${SHOP_IDS.map((sid) => {
+            const bs = byShop[sid];
+            return `<div class="gp-card">
+              <div class="gp-shop">${esc(SHOPS[sid].name)} (GP ${bs.gpPct}%)</div>
+              <div class="grid g2" style="gap:.5rem;margin-top:.5rem">
+                <div>
+                  <div class="muted" style="font-size:.72rem">ยอดขาย</div>
+                  <div style="font-weight:800;font-size:1.1rem">฿${fmtTHB(bs.total)}</div>
+                  <div class="muted" style="font-size:.72rem">${bs.count} บิล • ต้นทุน ฿${fmtTHB(bs.cost)}</div>
+                </div>
+                <div>
+                  <div class="muted" style="font-size:.72rem">GP ที่ต้องจ่าย</div>
+                  <div class="gp-amount">฿${fmtTHB(bs.gp)}</div>
+                </div>
+              </div>
+              <div style="margin-top:.6rem;padding-top:.6rem;border-top:1px dashed var(--line)">
+                <div style="display:flex;justify-content:space-between;font-size:.85rem">
+                  <span class="muted">กำไรขั้นต้น − GP:</span>
+                  <b style="color:${bs.netAfterGp >= 0 ? "var(--green)" : "var(--red)"}">฿${fmtTHB(bs.netAfterGp)}</b>
+                </div>
+              </div>
+            </div>`;
+          }).join("")}
+        </div>
+        <div class="gp-card" style="margin-top:.75rem;border-left-color:var(--green)">
+          <div class="gp-shop">รวม GP ทั้งกิจการ</div>
+          <div class="gp-amount" style="color:var(--green)">฿${fmtTHB(grandGp)}</div>
+          <div class="gp-meta">= ฿${fmtTHB(byShop.meath.gp)} (${esc(SHOPS.meath.name)}) + ฿${fmtTHB(byShop.drink.gp)} (${esc(SHOPS.drink.name)})</div>
+        </div>
+      </div>
+
+      <div class="grid g3" style="margin-top:1rem">
+        <div class="stat"><div class="lbl">เงินสด</div><div class="val sm">฿${fmtTHB(grandCash)}</div></div>
+        <div class="stat"><div class="lbl">เงินโอน</div><div class="val sm">฿${fmtTHB(grandTransfer)}</div></div>
+        <div class="stat"><div class="lbl">รายจ่าย</div><div class="val sm" style="color:var(--red)">฿${fmtTHB(expTotal)}</div></div>
+      </div>
+      <div class="card" style="margin-top:1rem">
+        <h3>กำไรหลังหักทุกอย่าง</h3>
+        <div style="font-size:2rem;font-weight:800;color:${profit >= 0 ? "var(--green)" : "var(--red)"}">฿${fmtTHB(profit)}</div>
+        <p class="hint">= ยอดขาย − ต้นทุนขาย − GP รวม − รายจ่าย</p>
+      </div>
+
+      <div class="card">
+        <h3>สินค้าขายดี Top 15</h3>
+        ${
+          top.length
+            ? `<div class="table-wrap"><table>
+          <thead><tr><th>สินค้า</th><th style="text-align:right">จำนวน</th><th style="text-align:right">รายได้</th></tr></thead>
+          <tbody>${top
+            .map(
+              (t) => `<tr><td>${esc(t.name)}</td>
+            <td style="text-align:right">${t.qty}</td>
+            <td style="text-align:right">฿${fmtTHB(t.revenue)}</td></tr>`,
+            )
+            .join("")}</tbody>
+        </table></div>`
+            : `<div class="empty">ไม่มีข้อมูล</div>`
+        }
+      </div>`;
+        };
+        $("btnRunRp").addEventListener("click", run);
+        $("btnExpSales").addEventListener("click", () => {
+          downloadCSV(
+            `sales-${dateKey()}.csv`,
+            [
+              "บิล",
+              "วันที่",
+              "ร้าน",
+              "สมาชิก",
+              "สุทธิ",
+              "GP%",
+              "GP(บาท)",
+              "วิธีชำระ",
+              "ต้นทุน",
+              "กำไรขั้นต้น",
+              "แต้ม+",
+              "แต้ม−",
+              "สถานะ",
+            ],
+            lastSales.map((s) => [
+              s.billNo,
+              fmtDT(s.createdAt),
+              shopName(s.shopId),
+              `${s.memberDisplayName || ""} ${s.memberPhoneMasked || ""}`.trim(),
+              Number(s.total || 0).toFixed(2),
+              Number(s.gpPct || 0).toFixed(2),
+              Number(s.gpAmount || 0).toFixed(2),
+              (s.payments || [])
+                .map((p) => `${p.method}:${Number(p.amount).toFixed(2)}`)
+                .join(" | "),
+              Number(s.grossCost || 0).toFixed(2),
+              (Number(s.total || 0) - Number(s.grossCost || 0)).toFixed(2),
+              s.pointsEarned || 0,
+              s.pointsRedeemed || 0,
+              s.status === "completed" ? "สำเร็จ" : "ยกเลิก",
+            ]),
+          );
+        });
+        await run();
+      }
+
+      /* ---------- SETTINGS ---------- */
+      async function renderSettings() {
+        const [pt, shop] = await Promise.all([
+          getSetting("points"),
+          getSetting("shop"),
+        ]);
+        const cfg = pt?.shops || DEFAULT_POINTS.shops;
+        const gp = { ...DEFAULT_GP, ...(shop?.gpPercent || {}) };
+
+        $("view").innerHTML = `
+    <div class="card">
+      <h3>กติกาสะสมแต้ม</h3>
+      <p class="hint">
+        <b>โหมด "นับเป็นถ้วย"</b> = นับจำนวนชิ้น/ถ้วยในบิล × แต้มต่อถ้วย<br>
+        ตัวอย่าง: ซื้อ 3 ถ้วยในบิลเดียว → ได้ 3 แต้ม (ไม่ใช่ 1 แต้มต่อบิล)
+      </p>
+      <div class="grid g2">
+        ${SHOP_IDS.map((sid) => {
+          const c = cfg[sid] || {};
+          return `<div class="card" style="background:var(--bg3)">
+            <h4>${esc(SHOPS[sid].name)}</h4>
+            <label>รูปแบบการคิดแต้ม</label>
+            <select data-pt="${sid}" data-k="mode" class="ptMode">
+              <option value="perUnit" ${c.mode === "perUnit" ? "selected" : ""}>🥤 นับเป็นถ้วย (แนะนำ)</option>
+              <option value="perBill" ${c.mode === "perBill" ? "selected" : ""}>🧾 แต้มต่อบิล</option>
+              <option value="perAmount" ${c.mode === "perAmount" ? "selected" : ""}>💰 แต้มตามยอดซื้อ</option>
+            </select>
+            <label>แต้มต่อ 1 ถ้วย (หน่วย)</label>
+            <input type="number" min="0" step="0.1" data-pt="${sid}" data-k="pointsPerUnit" value="${Number(c.pointsPerUnit !== undefined ? c.pointsPerUnit : 1)}">
+            <label>แต้มต่อบิล <span class="muted">(ใช้เมื่อเลือกโหมด "แต้มต่อบิล")</span></label>
+            <input type="number" min="0" data-pt="${sid}" data-k="pointsPerBill" value="${Number(c.pointsPerBill || 0)}">
+            <label>ทุกกี่บาท = 1 แต้ม <span class="muted">(ใช้เมื่อเลือกโหมด "ตามยอดซื้อ")</span></label>
+            <input type="number" min="0" data-pt="${sid}" data-k="amountPerPoint" value="${Number(c.amountPerPoint || 0)}">
+            <label>แต้มที่ใช้แลกรางวัล</label>
+            <input type="number" min="1" data-pt="${sid}" data-k="redeemThreshold" value="${Number(c.redeemThreshold || 10)}">
+            <label>รายละเอียดรางวัล</label>
+            <input data-pt="${sid}" data-k="rewardDescription" value="${esc(c.rewardDescription || "")}" placeholder="เช่น แลกฟรี 1 รายการ">
+          </div>`;
+        }).join("")}
+      </div>
+      <button type="button" class="btn btn-primary" id="btnSavePt" style="margin-top:.8rem">บันทึกกติกาคะแนน</button>
+      <div class="msg" id="ptMsg"></div>
+    </div>
+
+    <div class="card">
+      <h3>เปอร์เซ็นต์ GP แยกร้าน</h3>
+      <div class="grid g3">
+        <div>
+          <label>ค่าเริ่มต้น (%)</label>
+          <input type="number" min="0" max="100" step="0.01" id="gpDefault" value="${Number(gp.default || 0)}">
+        </div>
+        <div>
+          <label>${esc(SHOPS.meath.name)} (%)</label>
+          <input type="number" min="0" max="100" step="0.01" id="gpMeath" value="${Number(gp.meath || 0)}">
+        </div>
+        <div>
+          <label>${esc(SHOPS.drink.name)} (%)</label>
+          <input type="number" min="0" max="100" step="0.01" id="gpDrink" value="${Number(gp.drink || 0)}">
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary" id="btnSaveGP" style="margin-top:.8rem">บันทึกค่า GP</button>
+      <div class="msg" id="gpMsg"></div>
+    </div>
+
+    <div class="card">
+      <h3>ℹ️ ข้อมูลระบบ</h3>
+      <div class="table-wrap"><table>
+        <tbody>
+          <tr><td>ชื่อผู้ใช้แอดมิน</td><td><b>${LOGIN_USER}</b></td></tr>
+          <tr><td>Firebase Project</td><td>kool-bar</td></tr>
+          <tr><td>ร้านย่อย</td><td>${SHOP_IDS.map((s) => esc(SHOPS[s].name)).join(" • ")}</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <h3>🗑 ล้างข้อมูล (ใช้ระวัง)</h3>
+      <button type="button" class="btn btn-danger" id="btnWipe">ล้างข้อมูลทั้งหมด</button>
+      <div class="msg" id="wipeMsg"></div>
+    </div>
+  `;
+
+        $("btnSavePt").addEventListener("click", async () => {
+          const next = { shops: {} };
+          SHOP_IDS.forEach((sid) => {
+            next.shops[sid] = {
+              mode: "perUnit",
+              pointsPerUnit: 1,
+              pointsPerBill: 0,
+              amountPerPoint: 0,
+              redeemThreshold: 10,
+              rewardDescription: "",
+            };
+            $("view")
+              .querySelectorAll(`[data-pt="${sid}"]`)
+              .forEach((inp) => {
+                const k = inp.dataset.k;
+                next.shops[sid][k] =
+                  k === "mode" || k === "rewardDescription"
+                    ? inp.value
+                    : Number(inp.value) || 0;
+              });
+            // ถ้าโหมด perUnit แตะแต่ค่า 0 → ตั้งค่าเริ่มต้นเป็น 1
+            if (
+              next.shops[sid].mode === "perUnit" &&
+              !next.shops[sid].pointsPerUnit
+            ) {
+              next.shops[sid].pointsPerUnit = 1;
+            }
+          });
+          try {
+            await saveSetting("points", next);
+            await audit("settings.points", next.shops);
+            state.pointsCfg = next;
+            toast("บันทึกกติกาคะแนนแล้ว", "ok");
+          } catch (e) {
+            setMsg($("ptMsg"), e.message, "err");
+          }
+        });
+
+        $("btnSaveGP").addEventListener("click", async () => {
+          try {
+            const data = {
+              gpPercent: {
+                default: Number($("gpDefault").value) || 0,
+                meath: Number($("gpMeath").value) || 0,
+                drink: Number($("gpDrink").value) || 0,
+              },
+            };
+            await saveSetting("shop", data);
+            await audit("settings.gp", data);
+            state.gpPercent = data.gpPercent;
+            toast("บันทึก GP แล้ว", "ok");
+          } catch (e) {
+            setMsg($("gpMsg"), e.message, "err");
+          }
+        });
+
+        $("btnWipe").addEventListener("click", async () => {
+          const ok = await confirmDialog(
+            "⚠ ลบข้อมูลการขาย สต๊อก ความเคลื่อนไหว และการตั้งค่าทั้งหมด?\n\n(สมาชิก/สินค้า/สูตร จะยังอยู่)",
+            { title: "ยืนยันล้างข้อมูล", okText: "ลบเลย", danger: true },
+          );
+          if (!ok) return;
+          const cols = [
+            C.sales,
+            C.inventoryMovements,
+            C.expenses,
+            C.shifts,
+            C.auditLogs,
+            C.counters,
+          ];
+          let n = 0;
+          try {
+            for (const col of cols) {
+              const snap = await getDocs(collection(db, col));
+              if (col === C.sales) {
+                for (const d of snap.docs) {
+                  const items = await getDocs(
+                    collection(db, C.sales, d.id, C.saleItems),
+                  );
+                  for (const it of items.docs) {
+                    await deleteDoc(it.ref);
+                    n++;
+                  }
+                }
+              }
+              for (const d of snap.docs) {
+                await deleteDoc(d.ref);
+                n++;
+              }
+            }
+            toast(`ลบไปทั้งหมด ${n} รายการ`, "ok");
+          } catch (e) {
+            setMsg($("wipeMsg"), e.message, "err");
+          }
+        });
+      }
+
+      /* =========================================================
+   INIT
+   ========================================================= */
+      async function bootApp() {
+        try {
+          await loadSettings();
+        } catch (e) {
+          console.warn("init loadSettings:", e);
+        }
+
+        const btnCheck = $("btnCheckPoints");
+        if (btnCheck) btnCheck.addEventListener("click", checkPoints);
+
+        const phoneIn = $("phoneInput");
+        if (phoneIn) {
+          phoneIn.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") checkPoints();
+          });
+          phoneIn.addEventListener("input", (e) => {
+            e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
+          });
+        }
+
+        const btnAdm = $("btnAdminLogin");
+        if (btnAdm) {
+          const fresh = btnAdm.cloneNode(true);
+          btnAdm.parentNode.replaceChild(fresh, btnAdm);
+
+          const handler = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof e.stopImmediatePropagation === "function")
+              e.stopImmediatePropagation();
+            try {
+              openLoginModal();
+            } catch (err) {
+              console.error("openLoginModal error:", err);
+              alert("เปิดหน้าล็อกอินไม่ได้: " + err.message);
+            }
+          };
+          fresh.addEventListener("click", handler, true);
+          fresh.addEventListener("pointerup", handler, true);
+          fresh.addEventListener(
+            "touchend",
+            (e) => {
+              e.preventDefault();
+              handler(e);
+            },
+            { capture: true, passive: false },
+          );
+
+          console.log("[Kool Bar] ปุ่มแอดมินพร้อมใช้งาน ✅");
+        }
+
+        const btnOut = $("btnLogout");
+        if (btnOut) btnOut.addEventListener("click", doLogout);
+
+        const btnBack = $("btnBackPublic");
+        if (btnBack)
+          btnBack.addEventListener("click", () => {
+            showPublicView();
+          });
+
+        if (localStorage.getItem(SESSION_KEY) === "1") {
+          state.isAdmin = true;
+          showAdminView();
+          renderNav();
+          try {
+            await navigate("dashboard");
+          } catch (e) {
+            console.error(e);
+          }
+          return;
+        }
+
+        showPublicView();
+        setTimeout(() => {
+          try {
+            if (phoneIn) phoneIn.focus();
+          } catch (e) {}
+        }, 300);
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => {
+          bootApp().catch((err) => {
+            console.error("bootApp failed", err);
+            document.body.innerHTML = `<div style="padding:2rem;color:#fff;font-family:sans-serif">
+        <h2>❌ เริ่มระบบไม่สำเร็จ</h2>
+        <p>${esc(err.message)}</p>
+      </div>`;
+          });
+        });
+      } else {
+        bootApp().catch((err) => {
+          console.error("bootApp failed", err);
+          document.body.innerHTML = `<div style="padding:2rem;color:#fff;font-family:sans-serif">
+      <h2>❌ เริ่มระบบไม่สำเร็จ</h2>
+      <p>${esc(err.message)}</p>
+    </div>`;
+        });
+      }
+    </script>
+  </body>
+</html>
