@@ -1915,7 +1915,7 @@
         pointsCfg: DEFAULT_POINTS,
         gpPercent: { ...DEFAULT_GP },
         isAdmin: false,
-        shopId: null, // primary shop (for shift)
+        shopId: null,
         products: [],
         cart: new Map(),
         member: null,
@@ -1926,6 +1926,7 @@
         change: 0,
         productShopFilter: "",
         productCategoryFilter: "",
+        dashboardDate: dateKey(),
       };
       const invDocId = (sid, pid) => `${sid}__${pid}`;
       const newToken = () =>
@@ -1983,9 +1984,6 @@
         return 0;
       }
 
-      /* =====================================================================
-         ★ Helper: แยกยอดตามร้านจาก sale
-         ===================================================================== */
       function saleShopPortions(s) {
         if (s && s.shopsDetail && typeof s.shopsDetail === "object") {
           return Object.entries(s.shopsDetail).map(([sid, d]) => [
@@ -2007,9 +2005,6 @@
         return [];
       }
 
-      /* =====================================================================
-         ★ Sidebar Drawer (mobile)
-         ===================================================================== */
       function isMobileDrawer() {
         return window.matchMedia("(max-width: 820px)").matches;
       }
@@ -2050,9 +2045,6 @@
         else openSidebar();
       }
 
-      /* =====================================================================
-         View switch
-         ===================================================================== */
       function showPublicView() {
         closeSidebar();
         $("viewPublic").classList.remove("hidden");
@@ -2301,24 +2293,33 @@
         }
       }
 
-      /* ========== Dashboard (uses shopsDetail for mixed sales) ========== */
+      /* ========== Dashboard ========== */
       async function renderDashboard() {
-        const now = new Date();
+        if (!state.dashboardDate) state.dashboardDate = dateKey();
+        const targetDate = new Date(state.dashboardDate + "T00:00:00");
+        if (isNaN(targetDate.getTime())) {
+          state.dashboardDate = dateKey();
+          return renderDashboard();
+        }
+        const dayStart = sod(targetDate);
+        const dayEnd = eod(targetDate);
+        const isToday = state.dashboardDate === dateKey();
+
         const [salesSnap, expSnap, invSnap, prodSnap] = await Promise.all([
           getDocs(
             query(
               collection(db, C.sales),
-              where("createdAt", ">=", sod(now)),
-              where("createdAt", "<=", eod(now)),
-              limit(500),
+              where("createdAt", ">=", dayStart),
+              where("createdAt", "<=", dayEnd),
+              limit(2000),
             ),
           ),
           getDocs(
             query(
               collection(db, C.expenses),
-              where("date", ">=", sod(now)),
-              where("date", "<=", eod(now)),
-              limit(200),
+              where("date", ">=", dayStart),
+              where("date", "<=", dayEnd),
+              limit(500),
             ),
           ),
           getDocs(collection(db, C.inventory)),
@@ -2326,7 +2327,12 @@
         ]);
         const sales = salesSnap.docs
           .map((d) => ({ id: d.id, ...d.data() }))
-          .filter((s) => s.status === "completed");
+          .filter((s) => s.status === "completed")
+          .sort(
+            (a, b) =>
+              (toDate(b.createdAt)?.getTime() || 0) -
+              (toDate(a.createdAt)?.getTime() || 0),
+          );
         const expenses = expSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
         const prodMap = new Map(prodSnap.docs.map((d) => [d.id, d.data()]));
 
@@ -2383,9 +2389,27 @@
           if (min > 0 && qty <= min) low++;
         }
 
+        const dateLabel = isToday ? "วันนี้" : fmtD(targetDate);
+        const dateBadge = isToday
+          ? `<span class="badge ok">วันนี้</span>`
+          : `<span class="badge warn">ย้อนหลัง</span>`;
+
         $("view").innerHTML = `
+          <div class="card" style="margin-bottom:1rem">
+            <div class="row" style="align-items:flex-end">
+              <div style="flex:2;min-width:180px">
+                <label>📅 วันที่แสดงผล (เลือกเพื่อดูย้อนหลัง)</label>
+                <input id="dashboardDate" type="date" value="${state.dashboardDate}" max="${dateKey()}">
+              </div>
+              <button type="button" id="btnDashboardPrev" class="btn btn-ghost" style="flex:0 0 auto">◀ ก่อนหน้า</button>
+              <button type="button" id="btnDashboardToday" class="btn ${isToday ? "btn-primary" : "btn-ghost"}" style="flex:0 0 auto">วันนี้</button>
+              <button type="button" id="btnDashboardNext" class="btn btn-ghost" style="flex:0 0 auto" ${isToday ? "disabled" : ""}>ถัดไป ▶</button>
+            </div>
+            <div class="hint" style="margin-top:.6rem">กำลังแสดงข้อมูลของ <b>${esc(dateLabel)}</b> ${dateBadge}</div>
+          </div>
+
           <div class="grid g4">
-            <div class="stat"><div class="lbl">ยอดขายวันนี้</div><div class="val">฿${fmtTHB(total)}</div>
+            <div class="stat"><div class="lbl">ยอดขาย${isToday ? "วันนี้" : "วันที่เลือก"}</div><div class="val">฿${fmtTHB(total)}</div>
               <div class="muted" style="font-size:.75rem">${sales.length} บิล</div></div>
             <div class="stat"><div class="lbl">เงินสด / เงินโอน</div><div class="val sm">฿${fmtTHB(cash)} / ฿${fmtTHB(transfer)}</div></div>
             <div class="stat"><div class="lbl">ต้นทุนขาย</div><div class="val sm">฿${fmtTHB(cost)}</div></div>
@@ -2419,7 +2443,7 @@
             </div>
           </div>
           <div class="grid g3" style="margin-top:1rem">
-            <div class="card"><h4>รายจ่ายวันนี้</h4>
+            <div class="card"><h4>รายจ่าย${isToday ? "วันนี้" : "วันที่เลือก"}</h4>
               <div style="font-size:1.5rem;font-weight:800;color:var(--red)">฿${fmtTHB(expTotal)}</div></div>
             <div class="card"><h4>กำไรหลังหัก GP + รายจ่าย</h4>
               <div style="font-size:1.5rem;font-weight:800;color:${total - cost - totalGp - expTotal >= 0 ? "var(--green)" : "var(--red)"}">฿${fmtTHB(total - cost - totalGp - expTotal)}</div></div>
@@ -2431,43 +2455,273 @@
                   : `<div class="badge ok" style="margin-top:.4rem">สต๊อกปกติ</div>`
               }</div>
           </div>
+
           <div class="card" style="margin-top:1rem">
-            <h4>บิลล่าสุด</h4>
-            ${salesTable(sales.slice(0, 10))}
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.7rem">
+              <h4 style="margin:0">🧾 รายการขายทั้งหมด — ${esc(dateLabel)}</h4>
+              <span class="badge ${sales.length ? "ok" : ""}">${sales.length} รายการ • รวม ฿${fmtTHB(total)}</span>
+            </div>
+            ${salesTableAll(sales)}
           </div>`;
-      }
-      function salesTable(sales) {
-        if (!sales.length)
-          return `<div class="empty">ยังไม่มีข้อมูลการขาย</div>`;
-        return `<div class="table-wrap"><table>
-          <thead><tr><th>บิล</th><th>เวลา</th><th>ร้าน</th><th>สมาชิก</th>
-            <th style="text-align:right">สุทธิ</th><th>ชำระ</th><th>สถานะ</th></tr></thead>
-          <tbody>${sales
-            .map((s) => {
-              let shopLabel;
-              if (
-                s.shopId === "mixed" ||
-                (s.shopsDetail && Object.keys(s.shopsDetail).length > 1)
-              ) {
-                shopLabel = `<span class="badge mix">ผสม</span>`;
-              } else {
-                shopLabel = esc(shopName(s.shopId));
-              }
-              return `<tr>
-              <td><b>${esc(s.billNo)}</b></td>
-              <td>${fmtDT(s.createdAt)}</td>
-              <td>${shopLabel}</td>
-              <td>${esc(s.memberDisplayName || "-")}<br>
-                <span class="muted" style="font-size:.75rem">${esc(s.memberPhoneMasked || "")}</span></td>
-              <td style="text-align:right">฿${fmtTHB(s.total)}</td>
-              <td>${esc((s.payments || []).map((p) => (p.method === "cash" ? "สด" : "โอน")).join("+"))}</td>
-              <td>${s.status === "completed" ? `<span class="badge ok">สำเร็จ</span>` : `<span class="badge bad">ยกเลิก</span>`}</td>
-            </tr>`;
-            })
-            .join("")}</tbody></table></div>`;
+
+        const dIn = $("dashboardDate");
+        if (dIn) {
+          dIn.addEventListener("change", () => {
+            const v = dIn.value;
+            if (!v) return;
+            if (v > dateKey()) {
+              toast("ไม่สามารถดูวันในอนาคตได้", "err");
+              dIn.value = state.dashboardDate;
+              return;
+            }
+            state.dashboardDate = v;
+            renderDashboard();
+          });
+        }
+        const bPrev = $("btnDashboardPrev");
+        if (bPrev) {
+          bPrev.addEventListener("click", () => {
+            const d = new Date(state.dashboardDate + "T00:00:00");
+            d.setDate(d.getDate() - 1);
+            state.dashboardDate = dateKey(d);
+            renderDashboard();
+          });
+        }
+        const bToday = $("btnDashboardToday");
+        if (bToday) {
+          bToday.addEventListener("click", () => {
+            state.dashboardDate = dateKey();
+            renderDashboard();
+          });
+        }
+        const bNext = $("btnDashboardNext");
+        if (bNext && !isToday) {
+          bNext.addEventListener("click", () => {
+            const d = new Date(state.dashboardDate + "T00:00:00");
+            d.setDate(d.getDate() + 1);
+            const k = dateKey(d);
+            if (k > dateKey()) return;
+            state.dashboardDate = k;
+            renderDashboard();
+          });
+        }
+
+        const viewEl = $("view");
+        if (viewEl) {
+          viewEl.querySelectorAll("[data-sale]").forEach((tr) => {
+            tr.addEventListener("click", (e) => {
+              if (e.target.dataset?.view) return;
+              showSaleDetail(tr.dataset.sale);
+            });
+          });
+          viewEl.querySelectorAll("[data-view]").forEach((b) => {
+            b.addEventListener("click", (e) => {
+              e.stopPropagation();
+              showSaleDetail(b.dataset.view);
+            });
+          });
+        }
       }
 
-      /* ========== POS (multi-shop cart) ========== */
+      function salesTableAll(sales) {
+        if (!sales.length) {
+          return `<div class="empty">ยังไม่มีข้อมูลการขายในวันนี้</div>`;
+        }
+        return `<div class="table-wrap" style="max-height:65vh;overflow-y:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>บิล</th>
+                <th>เวลา</th>
+                <th>ร้าน</th>
+                <th>สมาชิก</th>
+                <th style="text-align:right">รายการ</th>
+                <th style="text-align:right">สุทธิ</th>
+                <th>ชำระ</th>
+                <th style="text-align:right">แต้ม</th>
+                <th>สถานะ</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>${sales
+              .map((s, idx) => {
+                let shopLabel;
+                if (
+                  s.shopId === "mixed" ||
+                  (s.shopsDetail && Object.keys(s.shopsDetail).length > 1)
+                ) {
+                  shopLabel = `<span class="badge mix">ผสม</span>`;
+                } else {
+                  shopLabel = esc(shopName(s.shopId));
+                }
+                const itemsCount =
+                  s.itemsCount ?? (s.items ? s.items.length : "-");
+                const payStr = (s.payments || [])
+                  .map((p) => (p.method === "cash" ? "สด" : "โอน"))
+                  .join("+");
+                const ptsStr = `+${s.pointsEarned || 0}${
+                  s.pointsRedeemed ? ` / −${s.pointsRedeemed}` : ""
+                }`;
+                return `<tr style="cursor:pointer" data-sale="${esc(s.id)}">
+                  <td>${idx + 1}</td>
+                  <td><b>${esc(s.billNo)}</b></td>
+                  <td>${fmtDT(s.createdAt)}</td>
+                  <td>${shopLabel}</td>
+                  <td>${esc(s.memberDisplayName || "-")}<br>
+                    <span class="muted" style="font-size:.75rem">${esc(s.memberPhoneMasked || "")}</span>
+                  </td>
+                  <td style="text-align:right">${itemsCount}</td>
+                  <td style="text-align:right;font-weight:700">฿${fmtTHB(s.total)}</td>
+                  <td>${esc(payStr)}</td>
+                  <td style="text-align:right">${esc(ptsStr)}</td>
+                  <td>${
+                    s.status === "completed"
+                      ? `<span class="badge ok">สำเร็จ</span>`
+                      : `<span class="badge bad">ยกเลิก</span>`
+                  }</td>
+                  <td><button type="button" class="btn btn-ghost btn-sm" data-view="${esc(s.id)}">ดู</button></td>
+                </tr>`;
+              })
+              .join("")}</tbody>
+          </table>
+        </div>`;
+      }
+
+      async function showSaleDetail(saleId) {
+        try {
+          const saleSnap = await getDoc(doc(db, C.sales, saleId));
+          if (!saleSnap.exists()) {
+            toast("ไม่พบบิลนี้", "err");
+            return;
+          }
+          const sale = { id: saleSnap.id, ...saleSnap.data() };
+          const itemsSnap = await getDocs(
+            collection(db, C.sales, saleId, C.saleItems),
+          );
+          const items = itemsSnap.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .sort((a, b) => (a.lineIndex || 0) - (b.lineIndex || 0));
+
+          const shopLabel =
+            sale.shopId === "mixed" ||
+            (sale.shopsDetail && Object.keys(sale.shopsDetail).length > 1)
+              ? "ผสม"
+              : shopName(sale.shopId);
+
+          const itemsHtml = items.length
+            ? `<div class="table-wrap" style="max-height:40vh;overflow:auto">
+                <table>
+                  <thead><tr>
+                    <th>รายการ</th>
+                    <th>ร้าน</th>
+                    <th style="text-align:right">ราคา</th>
+                    <th style="text-align:right">จำนวน</th>
+                    <th style="text-align:right">รวม</th>
+                  </tr></thead>
+                  <tbody>${items
+                    .map(
+                      (it) => `<tr>
+                        <td>${esc(it.name)}</td>
+                        <td>${esc(shopEmoji(it.shopId))} ${esc(shopName(it.shopId))}</td>
+                        <td style="text-align:right">฿${fmtTHB(it.price)}</td>
+                        <td style="text-align:right">${it.qty}</td>
+                        <td style="text-align:right">฿${fmtTHB(it.lineTotal)}</td>
+                      </tr>`,
+                    )
+                    .join("")}</tbody>
+                </table>
+              </div>`
+            : `<div class="empty">ไม่มีรายการ</div>`;
+
+          const m = el(`<div class="modal"><div class="modal-box wide">
+            <h3>🧾 รายละเอียดบิล</h3>
+            <div class="grid g2" style="margin-bottom:.8rem">
+              <div class="stat"><div class="lbl">เลขที่บิล</div>
+                <div class="val sm">${esc(sale.billNo || "-")}</div>
+                <div class="muted" style="font-size:.72rem">${esc(shopLabel)}</div></div>
+              <div class="stat"><div class="lbl">ยอดสุทธิ</div>
+                <div class="val sm">฿${fmtTHB(sale.total)}</div></div>
+            </div>
+            <div class="grid g3" style="margin-bottom:.8rem">
+              <div class="stat"><div class="lbl">เวลา</div>
+                <div class="val sm" style="font-size:.95rem">${fmtDT(sale.createdAt)}</div></div>
+              <div class="stat"><div class="lbl">สมาชิก</div>
+                <div class="val sm" style="font-size:.95rem">${esc(sale.memberDisplayName || "-")}</div></div>
+              <div class="stat"><div class="lbl">ชำระ</div>
+                <div class="val sm" style="font-size:.95rem">${esc((sale.payments || []).map((p) => (p.method === "cash" ? "สด" : "โอน") + " ฿" + fmtTHB(p.amount)).join(" + "))}</div></div>
+            </div>
+            <div class="grid g3" style="margin-bottom:.8rem">
+              <div class="stat"><div class="lbl">รวม</div>
+                <div class="val sm" style="font-size:.95rem">฿${fmtTHB(sale.subtotal || sale.total)}</div></div>
+              <div class="stat"><div class="lbl">ส่วนลด</div>
+                <div class="val sm" style="font-size:.95rem">฿${fmtTHB(sale.discount || 0)}</div></div>
+              <div class="stat"><div class="lbl">เงินทอน</div>
+                <div class="val sm" style="font-size:.95rem">฿${fmtTHB(sale.change || 0)}</div></div>
+            </div>
+            <div class="stat" style="margin-bottom:.8rem">
+              <div class="lbl">แต้ม</div>
+              <div class="muted" style="font-size:.85rem">
+                ได้รับ: <b style="color:var(--green)">+${sale.pointsEarned || 0}</b>
+                ${sale.pointsRedeemed ? ` • แลก: <b style="color:var(--red)">−${sale.pointsRedeemed}</b>` : ""}
+              </div>
+              ${
+                sale.pointsEarnedByShop
+                  ? Object.entries(sale.pointsEarnedByShop)
+                      .filter(([, v]) => v > 0)
+                      .map(
+                        ([sid, v]) =>
+                          `<div class="muted" style="font-size:.72rem">${shopEmoji(sid)} ${esc(shopName(sid))}: +${v}</div>`,
+                      )
+                      .join("")
+                  : ""
+              }
+            </div>
+            <h4>รายการสินค้า (${items.length})</h4>
+            ${itemsHtml}
+            <div class="modal-actions">
+              <button type="button" class="btn btn-ghost" data-a="cancel">ปิด</button>
+              <button type="button" class="btn btn-primary" data-a="print">🖨️ พิมพ์</button>
+            </div>
+          </div></div>`);
+          document.body.appendChild(m);
+          m.addEventListener("click", (e) => {
+            const a = e.target.dataset?.a;
+            if (a === "cancel" || e.target === m) {
+              m.remove();
+              return;
+            }
+            if (a === "print") {
+              const savedShopId = state.shopId;
+              const savedDiscount = state.discount;
+              state.shopId = sale.primaryShopId || sale.shopId;
+              state.discount = Number(sale.discount || 0);
+              printReceipt({
+                billNo: sale.billNo,
+                total: Number(sale.total || 0),
+                member: {
+                  displayName: sale.memberDisplayName || "",
+                  phoneMasked: sale.memberPhoneMasked || "",
+                },
+                earned: Number(sale.pointsEarned || 0),
+                redeem: Number(sale.pointsRedeemed || 0) > 0,
+                change: Number(sale.change || 0),
+                payments: sale.payments || [],
+                items,
+                shopsDetail: sale.shopsDetail,
+                isMixed: sale.shopId === "mixed",
+              });
+              state.shopId = savedShopId;
+              state.discount = savedDiscount;
+            }
+          });
+        } catch (err) {
+          console.error(err);
+          toast("โหลดรายละเอียดไม่สำเร็จ: " + err.message, "err");
+        }
+      }
+
+      /* ========== POS (multi-shop, name search) ========== */
       async function renderPOS() {
         $("view").innerHTML = `
           <div class="card">
@@ -2504,10 +2758,10 @@
               <div class="card">
                 <h3 style="font-size:1rem">👤 สมาชิก (บังคับ)</h3>
                 <div id="memberBox" class="member-box required">
-                  <div class="muted" style="font-size:.85rem">กรุณาระบุเบอร์ลูกค้าก่อนชำระเงิน</div>
+                  <div class="muted" style="font-size:.85rem">กรุณาระบุเบอร์โทรหรือชื่อลูกค้าก่อนชำระเงิน</div>
                 </div>
                 <div class="row" style="margin-top:.5rem">
-                  <input id="memPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="เบอร์โทรศัพท์">
+                  <input id="memPhone" type="search" placeholder="เบอร์โทร หรือ ชื่อลูกค้า" autocomplete="off" maxlength="60">
                   <button type="button" id="btnFindMem" class="btn" style="flex:0 0 auto">ค้นหา</button>
                 </div>
                 <div id="memMsg" class="msg"></div>
@@ -2678,7 +2932,6 @@
         });
       }
 
-      /* ★★ POS loads ALL products (multi-shop) ★★ */
       async function enterSellUI() {
         $("posWrap").classList.remove("hidden");
         const snap = await getDocs(
@@ -2738,9 +2991,6 @@
         $("btnFindMem").addEventListener("click", findMember);
         $("memPhone").addEventListener("keydown", (e) => {
           if (e.key === "Enter") findMember();
-        });
-        $("memPhone").addEventListener("input", (e) => {
-          e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
         });
         $("btnNewMem").addEventListener("click", openNewMemberModal);
         $("btnCheckout").addEventListener("click", openPayModal);
@@ -2894,37 +3144,157 @@
           $("btnNewMem").classList.add("hidden");
         } else {
           box.className = "member-box required";
-          box.innerHTML = `<div class="muted" style="font-size:.85rem">กรุณาระบุเบอร์ลูกค้าก่อนชำระเงิน</div>`;
+          box.innerHTML = `<div class="muted" style="font-size:.85rem">กรุณาระบุเบอร์โทรหรือชื่อลูกค้าก่อนชำระเงิน</div>`;
           $("btnNewMem").classList.add("hidden");
         }
       }
+
+      /* ★★★ ค้นหาสมาชิก: เบอร์โทร หรือ ชื่อ ★★★ */
       async function findMember() {
-        const phone = normalizePhone($("memPhone").value);
+        const raw = ($("memPhone").value || "").trim();
         const msg = $("memMsg");
-        if (!isValidPhone(phone)) {
-          setMsg(msg, "เบอร์ไม่ถูกต้อง", "err");
+        if (!raw) {
+          setMsg(msg, "กรุณากรอกเบอร์โทรหรือชื่อลูกค้า", "err");
           return;
         }
+
         setMsg(msg, "กำลังค้นหา…");
-        const id = await memberId(phone);
-        const snap = await getDoc(doc(db, C.members, id));
-        if (!snap.exists()) {
-          state.member = null;
-          setMsg(msg, "ไม่พบเบอร์นี้ในระบบ", "err");
+
+        // ตรวจสอบว่าเป็นเบอร์โทรหรือชื่อ
+        const cleaned = raw.replace(/[\s\-()]/g, "");
+        const isPhonePattern = /^\d{9,10}$/.test(cleaned);
+
+        try {
+          // ---- กรณีเป็นเบอร์โทร ----
+          if (isPhonePattern && isValidPhone(cleaned)) {
+            const id = await memberId(cleaned);
+            const snap = await getDoc(doc(db, C.members, id));
+            if (!snap.exists()) {
+              state.member = null;
+              setMsg(
+                msg,
+                "ไม่พบเบอร์นี้ในระบบ — กดปุ่มด้านล่างเพื่อสมัครสมาชิก",
+                "err",
+              );
+              drawMember();
+              $("btnNewMem").classList.remove("hidden");
+              return;
+            }
+            state.member = { id: snap.id, ...snap.data() };
+            setMsg(msg, "", "");
+            drawMember();
+            $("btnNewMem").classList.add("hidden");
+            toast(`พบสมาชิก ${state.member.displayName || ""}`, "ok", 1800);
+            return;
+          }
+
+          // ---- กรณีเป็นชื่อ ----
+          const kw = raw.toLowerCase();
+          const snap = await getDocs(
+            query(collection(db, C.members), limit(2000)),
+          );
+          const matches = snap.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .filter(
+              (m) =>
+                (m.nickname || "").toLowerCase().includes(kw) ||
+                (m.displayName || "").toLowerCase().includes(kw),
+            );
+
+          if (!matches.length) {
+            state.member = null;
+            setMsg(msg, "ไม่พบลูกค้าที่ตรงกับชื่อนี้", "err");
+            drawMember();
+            $("btnNewMem").classList.add("hidden");
+            return;
+          }
+
+          if (matches.length === 1) {
+            state.member = matches[0];
+            setMsg(msg, "", "");
+            drawMember();
+            $("btnNewMem").classList.add("hidden");
+            toast(`พบสมาชิก ${state.member.displayName || ""}`, "ok", 1800);
+            return;
+          }
+
+          // พบหลายรายการ → ให้เลือก
+          setMsg(msg, `พบ ${matches.length} รายการ — เลือกลูกค้า`, "");
+          openMemberPicker(matches);
+        } catch (e) {
+          console.error(e);
+          setMsg(
+            msg,
+            "เกิดข้อผิดพลาด: " + (e.message || "ไม่ทราบสาเหตุ"),
+            "err",
+          );
+        }
+      }
+
+      /* ★ Modal เลือกสมาชิกเมื่อค้นหาชื่อได้หลายรายการ */
+      function openMemberPicker(matches) {
+        const rows = matches
+          .slice(0, 60)
+          .map((m) => {
+            const pts = SHOP_IDS.map(
+              (s) => `${shopEmoji(s)} ${Number(m.points?.[s] || 0)}`,
+            ).join(" · ");
+            return `<button type="button" class="btn btn-ghost btn-block" data-pick="${esc(m.id)}"
+              style="text-align:left;justify-content:flex-start;padding:.7rem 1rem;margin-bottom:.4rem;height:auto;min-height:auto;display:flex;gap:.6rem;align-items:flex-start">
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:700;font-size:.95rem">${esc(m.displayName || "คุณ" + (m.nickname || ""))}</div>
+                <div class="muted" style="font-size:.78rem">${esc(m.phoneMasked || "")}</div>
+                <div class="muted" style="font-size:.72rem;margin-top:.2rem">${esc(pts)}</div>
+              </div>
+              <div style="flex-shrink:0;color:var(--orange);font-weight:700">เลือก →</div>
+            </button>`;
+          })
+          .join("");
+
+        const m = el(`<div class="modal"><div class="modal-box">
+          <h3>เลือกลูกค้า (${matches.length} รายการ)</h3>
+          <p class="hint">พบหลายรายการ — กรุณาเลือกให้ตรงกับลูกค้า</p>
+          <div style="max-height:60vh;overflow-y:auto;margin-top:.8rem" id="pickerList">
+            ${rows}
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-ghost" data-a="cancel">ยกเลิก</button>
+          </div>
+        </div></div>`);
+        document.body.appendChild(m);
+
+        m.querySelector("#pickerList").addEventListener("click", (e) => {
+          const btn = e.target.closest("[data-pick]");
+          if (!btn) return;
+          const found = matches.find((x) => x.id === btn.dataset.pick);
+          if (!found) return;
+          state.member = found;
+          m.remove();
+          setMsg($("memMsg"), "", "");
           drawMember();
-          $("btnNewMem").classList.remove("hidden");
+          $("btnNewMem").classList.add("hidden");
+          toast(`พบสมาชิก ${found.displayName || ""}`, "ok", 1800);
+        });
+
+        m.addEventListener("click", (e) => {
+          if (e.target.dataset?.a === "cancel" || e.target === m) m.remove();
+        });
+      }
+
+      function openNewMemberModal() {
+        // สมัครสมาชิกใหม่ต้องใช้เบอร์โทร — ถ้าผู้ใช้พิมพ์ชื่อไว้ ให้แจ้งเตือน
+        const raw = ($("memPhone").value || "").trim();
+        const cleaned = raw.replace(/[\s\-()]/g, "");
+        const isPhonePattern = /^\d{9,10}$/.test(cleaned);
+        if (!isPhonePattern) {
+          toast("กรุณากรอกเบอร์โทรศัพท์ก่อนสมัครสมาชิก (9-10 หลัก)", "err");
+          $("memPhone").value = "";
+          $("memPhone").focus();
           return;
         }
-        state.member = { id: snap.id, ...snap.data() };
-        setMsg(msg, "", "");
-        drawMember();
-        $("btnNewMem").classList.add("hidden");
-        toast(`พบสมาชิก ${state.member.displayName || ""}`, "ok", 1800);
-      }
-      function openNewMemberModal() {
-        const phone = normalizePhone($("memPhone").value);
+        const phone = normalizePhone(cleaned);
         if (!isValidPhone(phone)) {
-          toast("กรอกเบอร์ก่อน", "err");
+          toast("เบอร์โทรไม่ถูกต้อง", "err");
           return;
         }
         const m = el(`<div class="modal"><div class="modal-box">
@@ -2997,7 +3367,6 @@
         });
       }
 
-      /* ★★ openPayModal — shows per-shop breakdown ★★ */
       function openPayModal() {
         if (!state.cart.size) {
           toast("ยังไม่มีสินค้า", "err");
@@ -3010,7 +3379,6 @@
         const { total, subtotal, discount } = calcTotals();
         const primaryShopId = state.shopId;
 
-        // Group cart by shop
         const cartByShop = {};
         for (const { product, qty } of state.cart.values()) {
           const sid = product.shopId || primaryShopId;
@@ -3027,7 +3395,6 @@
         const shopIdsInCart = Object.keys(cartByShop);
         const isMixed = shopIdsInCart.length > 1;
 
-        // Earned per shop (proportional discount)
         const earnedPerShop = {};
         for (const sid of shopIdsInCart) {
           const data = cartByShop[sid];
@@ -3040,12 +3407,10 @@
           0,
         );
 
-        // Redemption (from primary shop)
         const threshold = redeemThreshold(primaryShopId);
         const ptsPrimary = Number(state.member.points?.[primaryShopId] || 0);
         const canRedeem = ptsPrimary >= threshold;
 
-        // GP per shop
         const gpByShop = {};
         for (const sid of shopIdsInCart) {
           const share =
@@ -3263,7 +3628,6 @@
         });
       }
 
-      /* ★★ commitSale — per-shop handling for mixed bills ★★ */
       async function commitSale({ payments, note }) {
         const primaryShopId = state.shopId;
         const token = state.clientToken || (state.clientToken = newToken());
@@ -3287,13 +3651,11 @@
           lineTotal: Number(product.price || 0) * qty,
         }));
 
-        // Unique shops in cart
         const shopIds = [
           ...new Set(items.map((i) => i.shopId).filter(Boolean)),
         ];
         const isMixed = shopIds.length > 1;
 
-        // Per-shop breakdown
         const shopsDetail = {};
         for (const sid of shopIds) {
           const shopItems = items.filter((i) => i.shopId === sid);
@@ -3332,7 +3694,6 @@
         const cRef = doc(db, C.counters, ckey);
 
         const billNo = await runTransaction(db, async (tx) => {
-          // READS
           const dup = await tx.get(saleRef);
           if (dup.exists()) {
             const e = new Error("บันทึกซ้ำ");
@@ -3348,7 +3709,6 @@
           const cSnap = await tx.get(cRef);
           const shSnap = await tx.get(shiftRef);
 
-          // Build stock deductions (per shop)
           const deductions = new Map();
           const pushDed = (sid, pid, q) => {
             if (!pid || !q) return;
@@ -3397,12 +3757,10 @@
             }
           });
 
-          // Member points
           const memberData = memberSnap.data();
           const pts = { ...emptyPoints(), ...(memberData.points || {}) };
           const spent = { ...emptyPoints(), ...(memberData.totalSpent || {}) };
 
-          // Redemption (from primary shop)
           const threshold = redeemThreshold(primaryShopId);
           const willRedeem = !!state.redeem;
           const redeemShop = primaryShopId;
@@ -3410,7 +3768,6 @@
           if (willRedeem && beforeRedeem < threshold)
             throw new Error("คะแนนไม่พอ");
 
-          // Apply earned per shop
           for (const sid of shopIds) {
             pts[sid] =
               Number(memberData.points?.[sid] || 0) + shopsDetail[sid].points;
@@ -3418,16 +3775,13 @@
               Number(memberData.totalSpent?.[sid] || 0) +
               shopsDetail[sid].total;
           }
-          // Apply redeem
           if (willRedeem) {
             pts[redeemShop] = pts[redeemShop] - threshold;
           }
 
-          // Bill number
           const seq = (cSnap.exists() ? Number(cSnap.data().seq || 0) : 0) + 1;
           const billNo = `${SHOPS[primaryShopId].prefix}-${dateKey().replace(/-/g, "")}-${String(seq).padStart(4, "0")}`;
 
-          // WRITES
           tx.set(cRef, { seq, updatedAt: serverTimestamp() }, { merge: true });
 
           tx.set(saleRef, {
@@ -3480,7 +3834,6 @@
             });
           });
 
-          // Stock deduction
           invSnaps.forEach((snap, i) => {
             const d = invArr[i];
             const have = snap.exists() ? Number(snap.data().qty || 0) : 0;
@@ -3511,14 +3864,12 @@
             });
           });
 
-          // Member update
           tx.update(memberRef, {
             points: pts,
             totalSpent: spent,
             lastVisitAt: serverTimestamp(),
           });
 
-          // Point transactions per shop (earn)
           for (const sid of shopIds) {
             if (shopsDetail[sid].points > 0) {
               const initPts = Number(memberData.points?.[sid] || 0);
@@ -3538,7 +3889,6 @@
               });
             }
           }
-          // Redeem transaction
           if (willRedeem) {
             const initPts = Number(memberData.points?.[redeemShop] || 0);
             const afterEarn = initPts + (shopsDetail[redeemShop]?.points || 0);
@@ -3558,7 +3908,6 @@
             });
           }
 
-          // Shift update
           const cash = payments
             .filter((p) => p.method === "cash")
             .reduce((s, p) => s + Number(p.amount), 0);
@@ -4648,7 +4997,7 @@
         });
       }
 
-      /* ========== Reports (uses shopsDetail for mixed sales) ========== */
+      /* ========== Reports ========== */
       async function renderReports() {
         const today = dateKey();
         $("view").innerHTML = `
